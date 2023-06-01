@@ -1,5 +1,7 @@
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.kronos.rkon.core.Rcon;
@@ -29,19 +31,18 @@ public class RetakeMessage extends ListenerAdapter {
         try {
             Role allowedRole = event.getGuild().getRoleById(allowedRoleId);
             MessageChannel channel = event.getChannel();
-            String message = event.getMessage().getContentDisplay();
+            Message message = event.getMessage();
             Rcon rcon = new Rcon(serverIp, serverPort, serverPassword.getBytes());
-
+            TextChannel textChannel = event.getTextChannel();
 
             if (event.getMember().getRoles().contains(allowedRole)) {
-                if (message.startsWith("changelevel")) {
-                    System.out.println(event.getAuthor().getName() + ": " + message);
-                    String result = rcon.command(message);
-                    if(result == null || result.isEmpty()) {
+                if (message.getContentDisplay().startsWith("changelevel")) {
+                    System.out.println(event.getAuthor().getName() + ": " + message.getContentDisplay());
+                    String result = rcon.command(message.getContentDisplay());
+                    if (result == null || result.isEmpty()) {
+                        textChannel.addReactionById(message.getId(), "U+1F504").queue();
                         channel.sendMessage("Level changed.").queue();
                     }
-                } else {
-                    channel.sendMessage("Not allowed").queue();;
                 }
             }
         } catch (AuthenticationException ex) {

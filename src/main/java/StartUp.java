@@ -24,7 +24,6 @@ public class StartUp implements EventListener {
                     .build();
 
             jda.awaitReady();
-
         } catch (LoginException ex) {
             System.out.println("Nice. Login failed.");
         } catch (InterruptedException ex) {
