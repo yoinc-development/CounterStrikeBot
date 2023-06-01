@@ -8,6 +8,8 @@ import net.kronos.rkon.core.Rcon;
 import net.kronos.rkon.core.ex.AuthenticationException;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 public class RetakeMessage extends ListenerAdapter {
@@ -16,6 +18,7 @@ public class RetakeMessage extends ListenerAdapter {
     private String serverIp;
     private int serverPort;
     private String serverPassword;
+    private String allowedMaps;
 
     public RetakeMessage(Properties properties) {
         super();
@@ -23,25 +26,32 @@ public class RetakeMessage extends ListenerAdapter {
         this.serverIp = properties.getProperty("server.ip");
         this.serverPort = Integer.parseInt(properties.getProperty("server.port"));
         this.serverPassword = properties.getProperty("server.password");
+        this.allowedMaps = properties.getProperty("csgo.maps");
     }
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
 
         try {
-            Role allowedRole = event.getGuild().getRoleById(allowedRoleId);
             MessageChannel channel = event.getChannel();
-            Message message = event.getMessage();
+            Role allowedRole = event.getGuild().getRoleById(allowedRoleId);
             Rcon rcon = new Rcon(serverIp, serverPort, serverPassword.getBytes());
             TextChannel textChannel = event.getTextChannel();
+            Message message = event.getMessage();
+            List<String> allowedMapsList = Arrays.asList(allowedMaps.split(","));
 
             if (event.getMember().getRoles().contains(allowedRole)) {
                 if (message.getContentDisplay().startsWith("changelevel")) {
                     System.out.println(event.getAuthor().getName() + ": " + message.getContentDisplay());
-                    String result = rcon.command(message.getContentDisplay());
-                    if (result == null || result.isEmpty()) {
-                        textChannel.addReactionById(message.getId(), "U+1F504").queue();
-                        channel.sendMessage("Level changed.").queue();
+                    String[] splitMessage = message.getContentDisplay().split(" ");
+                    if(splitMessage.length == 2) {
+                        if(allowedMapsList.contains(splitMessage[1])) {
+                            String result = rcon.command(message.getContentDisplay());
+                            if (result == null || result.isEmpty()) {
+                                textChannel.addReactionById(message.getId(), "U+1F504").queue();
+                                channel.sendMessage("Level changed.").queue();
+                            }
+                        }
                     }
                 }
             }
