@@ -8,6 +8,7 @@ import net.kronos.rkon.core.Rcon;
 import net.kronos.rkon.core.ex.AuthenticationException;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -18,7 +19,10 @@ public class RetakeMessage extends ListenerAdapter {
     private String serverIp;
     private int serverPort;
     private String serverPassword;
+    private int delay;
     private String allowedMaps;
+
+    private LocalDateTime endTime;
 
     public RetakeMessage(Properties properties) {
         super();
@@ -26,6 +30,7 @@ public class RetakeMessage extends ListenerAdapter {
         this.serverIp = properties.getProperty("server.ip");
         this.serverPort = Integer.parseInt(properties.getProperty("server.port"));
         this.serverPassword = properties.getProperty("server.password");
+        this.delay = Integer.parseInt(properties.getProperty("server.delay"));
         this.allowedMaps = properties.getProperty("csgo.maps");
     }
 
@@ -41,18 +46,28 @@ public class RetakeMessage extends ListenerAdapter {
             List<String> allowedMapsList = Arrays.asList(allowedMaps.split(","));
 
             if (event.getMember().getRoles().contains(allowedRole)) {
-                if (message.getContentDisplay().startsWith("changelevel")) {
-                    System.out.println(event.getAuthor().getName() + ": " + message.getContentDisplay());
-                    String[] splitMessage = message.getContentDisplay().split(" ");
-                    if(splitMessage.length == 2) {
-                        if(allowedMapsList.contains(splitMessage[1])) {
-                            String result = rcon.command(message.getContentDisplay());
-                            if (result == null || result.isEmpty()) {
-                                textChannel.addReactionById(message.getId(), "U+1F504").queue();
-                                channel.sendMessage("Level changed.").queue();
+
+                LocalDateTime currentTime = LocalDateTime.now();
+                System.out.println("Start Time: " + currentTime);
+                System.out.println(event.getAuthor().getName() + ": " + message.getContentDisplay());
+
+                if (endTime == null || currentTime.isAfter(endTime)) {
+                    if (message.getContentDisplay().startsWith("changelevel")) {
+                        String[] splitMessage = message.getContentDisplay().split(" ");
+                        if (splitMessage.length == 2) {
+                            if (allowedMapsList.contains(splitMessage[1])) {
+                                String result = rcon.command(message.getContentDisplay());
+                                if (result == null || result.isEmpty()) {
+                                    endTime = LocalDateTime.now().plusSeconds(delay);
+                                    System.out.println("End Time: " + endTime);
+                                    textChannel.addReactionById(message.getId(), "U+1F504").queue();
+                                    channel.sendMessage("Map gewechselt.").queue();
+                                }
                             }
                         }
                     }
+                } else {
+                    channel.sendMessage("Cooldown aktiv. Bitte warte " + delay + " Sekunden.").queue();
                 }
             }
         } catch (AuthenticationException ex) {
