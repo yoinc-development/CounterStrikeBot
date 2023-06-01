@@ -51,8 +51,8 @@ public class RetakeMessage extends ListenerAdapter {
                 System.out.println("Start Time: " + currentTime);
                 System.out.println(event.getAuthor().getName() + ": " + message.getContentDisplay());
 
-                if (endTime == null || currentTime.isAfter(endTime)) {
-                    if (message.getContentDisplay().startsWith("changelevel")) {
+                if (message.getContentDisplay().startsWith("changelevel")) {
+                    if (endTime == null || currentTime.isAfter(endTime)) {
                         String[] splitMessage = message.getContentDisplay().split(" ");
                         if (splitMessage.length == 2) {
                             if (allowedMapsList.contains(splitMessage[1])) {
@@ -65,9 +65,9 @@ public class RetakeMessage extends ListenerAdapter {
                                 }
                             }
                         }
+                    } else {
+                        channel.sendMessage("Cooldown aktiv. Bitte warte " + delay + " Sekunden.").queue();
                     }
-                } else {
-                    channel.sendMessage("Cooldown aktiv. Bitte warte " + delay + " Sekunden.").queue();
                 }
             }
         } catch (AuthenticationException ex) {
