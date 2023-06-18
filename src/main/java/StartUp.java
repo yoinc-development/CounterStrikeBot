@@ -4,14 +4,21 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.security.auth.login.LoginException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 
 public class StartUp implements EventListener {
+
+    private static Logger LOG = LoggerFactory.getLogger(StartUp.class);
+    private final DateTimeFormatter START_TIME = DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss");
 
     public static void main(String[] args) {
         try {
@@ -27,18 +34,20 @@ public class StartUp implements EventListener {
             jda.getPresence().setActivity(Activity.playing("YOINC.ch"));
             jda.awaitReady();
         } catch (LoginException ex) {
-            System.out.println("Nice. Login failed.");
+            LOG.error("Nice. Login failed.");
         } catch (InterruptedException ex) {
-            System.out.println("Nice. Something interrupted the connection.");
+            LOG.error("Nice. Something interrupted the connection.");
         } catch (IOException ex) {
-            System.out.println("Nice. Problems with that property.");
+            LOG.error("Nice. Problems with that property.");
         }
     }
 
     @Override
     public void onEvent(@Nonnull GenericEvent genericEvent) {
         if(genericEvent instanceof ReadyEvent) {
-            System.out.println("Ready.");
+            String startMessage = LocalDateTime.now().format(START_TIME) + " - Started application.";
+            System.out.println(startMessage);
+            LOG.info(startMessage);
         }
     }
 }

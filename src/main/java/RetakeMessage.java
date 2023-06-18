@@ -5,6 +5,8 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.kronos.rkon.core.Rcon;
 import net.kronos.rkon.core.ex.AuthenticationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -16,6 +18,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RetakeMessage extends ListenerAdapter {
+
+    private static Logger LOG = LoggerFactory.getLogger(RetakeMessage.class);
 
     private final String CHANGELEVEL_PATTERN = "(changelevel )(de_{1}[a-zA-Z]+)";
     private final DateTimeFormatter LOGGED_TIME = DateTimeFormatter.ofPattern("HH:mm:ss");
@@ -62,17 +66,22 @@ public class RetakeMessage extends ListenerAdapter {
                     if (allowedMapsList.contains(requestedMap)) {
                         LocalDateTime currentTime = LocalDateTime.now();
                         if (endTime == null || currentTime.isAfter(endTime)) {
-                            System.out.println("---");
-                            System.out.println("Requested Time: " + currentTime.format(LOGGED_TIME));
-                            System.out.println(event.getAuthor().getName() + ": " + message.getContentDisplay());
-                            String result = rcon.command(message.getContentDisplay());
-                            if (result == null || result.isEmpty()) {
-                                endTime = LocalDateTime.now().plusSeconds(delay);
-                                System.out.println("End Time: " + endTime.format(LOGGED_TIME));
-                                System.out.println("---");
-                                channel.addReactionById(message.getId(), "U+1F504").queue();
-                                channel.sendMessage("Map gewechselt.").queue();
-                            }
+                            StringBuilder logMessage = new StringBuilder();
+                            logMessage.append("---\n");
+                            logMessage.append("Requested Time: " + currentTime.format(LOGGED_TIME) + "\n");
+                            logMessage.append(event.getAuthor().getName() + ": " + message.getContentDisplay() + "\n");
+
+                            rcon.command(message.getContentDisplay());
+                            endTime = LocalDateTime.now().plusSeconds(delay);
+
+                            logMessage.append("End Time: " + endTime.format(LOGGED_TIME) + "\n");
+                            logMessage.append("---\n");
+
+                            System.out.println(logMessage.toString());
+                            LOG.info(logMessage.toString());
+
+                            channel.addReactionById(message.getId(), "U+1F504").queue();
+                            channel.sendMessage("Map gewechselt.").queue();
                         } else {
                             channel.addReactionById(message.getId(), "U+26A0").queue();
                             channel.sendMessage("Cooldown aktiv. Bitte warte " + delay + " Sekunden.").queue();
@@ -81,9 +90,9 @@ public class RetakeMessage extends ListenerAdapter {
                 }
             }
         } catch (AuthenticationException ex) {
-            System.out.println("RCON Authentication failed.");
+            LOG.error("RCON Authentication failed.");
         } catch (IOException ex) {
-            System.out.println("IO Exception");
+            LOG.error("IO Exception");
         }
     }
 }
