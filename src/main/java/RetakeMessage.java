@@ -1,7 +1,6 @@
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.kronos.rkon.core.Rcon;
@@ -9,11 +8,17 @@ import net.kronos.rkon.core.ex.AuthenticationException;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class RetakeMessage extends ListenerAdapter {
+
+    private final String CHANGELEVEL_PATTERN = "(changelevel )(de_{1}[a-zA-Z]+)";
+    private final DateTimeFormatter LOGGED_TIME = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     private String allowedRoleId;
     private String serverIp;
@@ -36,37 +41,42 @@ public class RetakeMessage extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
-
         try {
+            //origin channel of message
             MessageChannel channel = event.getChannel();
-            Role allowedRole = event.getGuild().getRoleById(allowedRoleId);
-            Rcon rcon = new Rcon(serverIp, serverPort, serverPassword.getBytes());
-            TextChannel textChannel = event.getTextChannel();
+            //message object
             Message message = event.getMessage();
+            //role object obtained via id set in properties
+            Role allowedRole = event.getGuild().getRoleById(allowedRoleId);
+            //rcon channel
+            Rcon rcon = new Rcon(serverIp, serverPort, serverPassword.getBytes());
+            //excepted message pattern
+            Pattern changelevelPattern = Pattern.compile(CHANGELEVEL_PATTERN);
+            //list of allowed maps to switch to set in properties
             List<String> allowedMapsList = Arrays.asList(allowedMaps.split(","));
 
             if (event.getMember().getRoles().contains(allowedRole)) {
-
-                LocalDateTime currentTime = LocalDateTime.now();
-                System.out.println("Start Time: " + currentTime);
-                System.out.println(event.getAuthor().getName() + ": " + message.getContentDisplay());
-
-                if (message.getContentDisplay().startsWith("changelevel")) {
-                    if (endTime == null || currentTime.isAfter(endTime)) {
-                        String[] splitMessage = message.getContentDisplay().split(" ");
-                        if (splitMessage.length == 2) {
-                            if (allowedMapsList.contains(splitMessage[1])) {
-                                String result = rcon.command(message.getContentDisplay());
-                                if (result == null || result.isEmpty()) {
-                                    endTime = LocalDateTime.now().plusSeconds(delay);
-                                    System.out.println("End Time: " + endTime);
-                                    textChannel.addReactionById(message.getId(), "U+1F504").queue();
-                                    channel.sendMessage("Map gewechselt.").queue();
-                                }
+                Matcher changelevelMatcher = changelevelPattern.matcher(message.getContentDisplay());
+                if (changelevelMatcher.matches()) {
+                    String requestedMap = changelevelMatcher.group(2);
+                    if (allowedMapsList.contains(requestedMap)) {
+                        LocalDateTime currentTime = LocalDateTime.now();
+                        if (endTime == null || currentTime.isAfter(endTime)) {
+                            System.out.println("---");
+                            System.out.println("Requested Time: " + currentTime.format(LOGGED_TIME));
+                            System.out.println(event.getAuthor().getName() + ": " + message.getContentDisplay());
+                            String result = rcon.command(message.getContentDisplay());
+                            if (result == null || result.isEmpty()) {
+                                endTime = LocalDateTime.now().plusSeconds(delay);
+                                System.out.println("End Time: " + endTime.format(LOGGED_TIME));
+                                System.out.println("---");
+                                channel.addReactionById(message.getId(), "U+1F504").queue();
+                                channel.sendMessage("Map gewechselt.").queue();
                             }
+                        } else {
+                            channel.addReactionById(message.getId(), "U+26A0").queue();
+                            channel.sendMessage("Cooldown aktiv. Bitte warte " + delay + " Sekunden.").queue();
                         }
-                    } else {
-                        channel.sendMessage("Cooldown aktiv. Bitte warte " + delay + " Sekunden.").queue();
                     }
                 }
             }
