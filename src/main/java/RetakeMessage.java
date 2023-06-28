@@ -20,6 +20,7 @@ public class RetakeMessage extends ListenerAdapter {
     private final String CHANGELEVEL_PATTERN = "(changelevel )(de_{1}[a-zA-Z]+)";
     private final DateTimeFormatter LOGGED_TIME = DateTimeFormatter.ofPattern("HH:mm:ss");
 
+    private Properties properties;
     private String allowedRoleId;
     private String serverIp;
     private int serverPort;
@@ -31,6 +32,9 @@ public class RetakeMessage extends ListenerAdapter {
 
     public RetakeMessage(Properties properties) {
         super();
+
+        this.properties = properties;
+
         this.allowedRoleId = properties.getProperty("discord.allowedRoleId");
         this.serverIp = properties.getProperty("server.ip");
         this.serverPort = Integer.parseInt(properties.getProperty("server.port"));
@@ -54,6 +58,12 @@ public class RetakeMessage extends ListenerAdapter {
             Pattern changelevelPattern = Pattern.compile(CHANGELEVEL_PATTERN);
             //list of allowed maps to switch to set in properties
             List<String> allowedMapsList = Arrays.asList(allowedMaps.split(","));
+
+            /*
+            //start new thread to listen and output console messages
+            ConsoleUpdate consoleUpdateThread = new ConsoleUpdate(properties, channel);
+            consoleUpdateThread.run();
+             */
 
             if (event.getMember().getRoles().contains(allowedRole)) {
                 Matcher changelevelMatcher = changelevelPattern.matcher(message.getContentDisplay());
