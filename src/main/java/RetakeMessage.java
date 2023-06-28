@@ -5,8 +5,6 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.kronos.rkon.core.Rcon;
 import net.kronos.rkon.core.ex.AuthenticationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -18,8 +16,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RetakeMessage extends ListenerAdapter {
-
-    private static Logger LOG = LoggerFactory.getLogger(RetakeMessage.class);
 
     private final String CHANGELEVEL_PATTERN = "(changelevel )(de_{1}[a-zA-Z]+)";
     private final DateTimeFormatter LOGGED_TIME = DateTimeFormatter.ofPattern("HH:mm:ss");
@@ -78,7 +74,6 @@ public class RetakeMessage extends ListenerAdapter {
                             logMessage.append("---\n");
 
                             System.out.println(logMessage.toString());
-                            LOG.info(logMessage.toString());
 
                             channel.addReactionById(message.getId(), "U+1F504").queue();
                             channel.sendMessage("Map gewechselt.").queue();
@@ -90,9 +85,9 @@ public class RetakeMessage extends ListenerAdapter {
                 }
             }
         } catch (AuthenticationException ex) {
-            LOG.error("RCON Authentication failed.");
+            System.out.println("RCON Authentication failed.");
         } catch (IOException ex) {
-            LOG.error("IO Exception");
+            System.out.println("IO Exception");
         }
     }
 }
