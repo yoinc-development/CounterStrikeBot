@@ -6,7 +6,7 @@ import java.io.*;
 import java.net.SocketException;
 import java.util.Properties;
 
-public class ConsoleUpdate implements Runnable{
+public class ConsoleUpdate {
 
     private String serverFtpIp;
     private int serverFtpPort;
@@ -26,54 +26,71 @@ public class ConsoleUpdate implements Runnable{
         this.channel = channel;
     }
 
-    @Override
-    public void run() {
+    public void congratulateStreakWinners() {
         try {
-            FTPClient ftp = new FTPClient();
-            ftp.connect(serverFtpIp, serverFtpPort);
-            ftp.login(serverFtpUser, serverFtpPassword);
-            ftp.changeWorkingDirectory("/csgo/csgo");
-
-            FTPFile[] ftpFileArray = ftp.listFiles("console.log");
-
-            InputStream inputStream = ftp.retrieveFileStream(ftpFileArray[0].getName());
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            BufferedReader reader = retrieveBufferedReader();
 
             String lastLine = "";
             while (reader.ready()) {
                 lastLine = reader.readLine();
             }
 
-            if(!MARKED_END.equals(lastLine)) {
-                reader = new BufferedReader(new InputStreamReader(inputStream));
+            if(lastLine.startsWith(MARKED_END)) {
+                reader = retrieveBufferedReader();
                 int lineNumber = 1;
                 int lastLineNumber = 1;
                 while (reader.ready()) {
-                    if(MARKED_END.equals(reader.readLine())) {
+                    if(reader.readLine().startsWith(MARKED_END)) {
                         lastLineNumber = lineNumber;
                     }
                     lineNumber++;
                 }
 
-                reader = new BufferedReader(new InputStreamReader(inputStream));
+                reader = retrieveBufferedReader();
                 reader.skip(lastLineNumber);
                 while (reader.ready()) {
-                    //check for streak message
+                    if(reader.readLine().startsWith("A full streak has been reached")) {
+                        System.out.printf("winner found");
+                        channel.sendMessage("winner found").queue();
+                    }
                 }
-                //update file with MARKED_END and upload it again on the server
-                //ftp.storeFile("console.log", inputStream);
+
+                String newContent = "";
+                reader = retrieveBufferedReader();
+                while (reader.ready()) {
+                    newContent = newContent + reader.readLine() + "\r\n";
+                }
+                newContent = newContent + "\r\n" + MARKED_END;
+
+                InputStream targetStream = new ByteArrayInputStream(newContent.getBytes());
+
+                FTPClient ftp = new FTPClient();
+                ftp.connect(serverFtpIp, serverFtpPort);
+                ftp.login(serverFtpUser, serverFtpPassword);
+                ftp.changeWorkingDirectory("/csgo/csgo");
+                ftp.storeFile("console.log", targetStream);
+                ftp.completePendingCommand();
+                ftp.disconnect();
             }
-
-
-           /*
-            TODO: send congratulatory message through variable "channel"
-            */
 
         } catch (SocketException ex) {
             System.out.println("Socket Exception");
         } catch (IOException ex) {
             System.out.println("IOException");
         }
+    }
+
+    private BufferedReader retrieveBufferedReader() throws IOException {
+        FTPClient ftp = new FTPClient();
+        ftp.connect(serverFtpIp, serverFtpPort);
+        ftp.login(serverFtpUser, serverFtpPassword);
+
+        ftp.changeWorkingDirectory("/csgo/csgo");
+        FTPFile[] ftpFileArray = ftp.listFiles("console.log");
+        InputStream inputStream = ftp.retrieveFileStream(ftpFileArray[0].getName());
+        BufferedReader reader =  new BufferedReader(new InputStreamReader(inputStream));
+        ftp.disconnect();
+
+        return reader;
     }
 }

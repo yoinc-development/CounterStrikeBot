@@ -7,18 +7,16 @@ import net.kronos.rkon.core.Rcon;
 import net.kronos.rkon.core.ex.AuthenticationException;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RetakeMessage extends ListenerAdapter {
 
     private final String CHANGELEVEL_PATTERN = "(changelevel )(de_{1}[a-zA-Z]+)";
+    private final String FORCEWINNERS_PATTERN = "(forcewinners)";
     private final DateTimeFormatter LOGGED_TIME = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     private Properties properties;
@@ -28,8 +26,8 @@ public class RetakeMessage extends ListenerAdapter {
     private String serverPassword;
     private int delay;
     private String allowedMaps;
-
     private LocalTime endTime;
+    private boolean hasTimerStarted = false;
 
     public RetakeMessage(Properties properties) {
         super();
@@ -47,8 +45,17 @@ public class RetakeMessage extends ListenerAdapter {
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
         try {
+
             //origin channel of message
             MessageChannel channel = event.getChannel();
+
+            /*
+            if(!hasTimerStarted) {
+                startCongratulateTask(channel);
+                hasTimerStarted = true;
+            }
+             */
+
             //message object
             Message message = event.getMessage();
             //role object obtained via id set in properties
@@ -57,17 +64,13 @@ public class RetakeMessage extends ListenerAdapter {
             Rcon rcon = new Rcon(serverIp, serverPort, serverPassword.getBytes());
             //excepted message pattern
             Pattern changelevelPattern = Pattern.compile(CHANGELEVEL_PATTERN);
+            Pattern forceWinnersPattern = Pattern.compile(FORCEWINNERS_PATTERN);
             //list of allowed maps to switch to set in properties
             List<String> allowedMapsList = Arrays.asList(allowedMaps.split(","));
 
-            /*
-            //start new thread to listen and output console messages
-            ConsoleUpdate consoleUpdateThread = new ConsoleUpdate(properties, channel);
-            consoleUpdateThread.run();
-             */
-
             if (event.getMember().getRoles().contains(allowedRole)) {
                 Matcher changelevelMatcher = changelevelPattern.matcher(message.getContentDisplay());
+                Matcher forceWinnersMatcher = forceWinnersPattern.matcher(message.getContentDisplay());
                 if (changelevelMatcher.matches()) {
                     String requestedMap = changelevelMatcher.group(2);
                     if (allowedMapsList.contains(requestedMap)) {
@@ -95,11 +98,29 @@ public class RetakeMessage extends ListenerAdapter {
                         }
                     }
                 }
+                /*
+                if(forceWinnersMatcher.matches()) {
+                    ConsoleUpdate consoleUpdate = new ConsoleUpdate(properties, channel);
+                    consoleUpdate.congratulateStreakWinners();
+                }
+                 */
             }
         } catch (AuthenticationException ex) {
             System.out.println("RCON Authentication failed.");
         } catch (IOException ex) {
             System.out.println("IO Exception");
         }
+    }
+
+    private void startCongratulateTask(MessageChannel channel) {
+        TimerTask hourSchedule = new TimerTask () {
+            @Override
+            public void run () {
+                ConsoleUpdate consoleUpdate = new ConsoleUpdate(properties, channel);
+                consoleUpdate.congratulateStreakWinners();
+            }
+        };
+        //checks every hour
+        new Timer().schedule (hourSchedule, 0l, 3600000);
     }
 }
