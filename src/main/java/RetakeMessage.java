@@ -8,6 +8,7 @@ import net.kronos.rkon.core.ex.AuthenticationException;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
@@ -28,7 +29,7 @@ public class RetakeMessage extends ListenerAdapter {
     private int delay;
     private String allowedMaps;
 
-    private LocalDateTime endTime;
+    private LocalTime endTime;
 
     public RetakeMessage(Properties properties) {
         super();
@@ -70,7 +71,7 @@ public class RetakeMessage extends ListenerAdapter {
                 if (changelevelMatcher.matches()) {
                     String requestedMap = changelevelMatcher.group(2);
                     if (allowedMapsList.contains(requestedMap)) {
-                        LocalDateTime currentTime = LocalDateTime.now();
+                        LocalTime currentTime = LocalTime.now();
                         if (endTime == null || currentTime.isAfter(endTime)) {
                             StringBuilder logMessage = new StringBuilder();
                             logMessage.append("---\n");
@@ -78,7 +79,7 @@ public class RetakeMessage extends ListenerAdapter {
                             logMessage.append(event.getAuthor().getName() + ": " + message.getContentDisplay() + "\n");
 
                             rcon.command(message.getContentDisplay());
-                            endTime = LocalDateTime.now().plusSeconds(delay);
+                            endTime = LocalTime.now().plusSeconds(delay);
 
                             logMessage.append("End Time: " + endTime.format(LOGGED_TIME) + "\n");
                             logMessage.append("---\n");
@@ -88,8 +89,9 @@ public class RetakeMessage extends ListenerAdapter {
                             channel.addReactionById(message.getId(), "U+1F504").queue();
                             channel.sendMessage("Map gewechselt.").queue();
                         } else {
+                            int missingTime = endTime.toSecondOfDay() - currentTime.toSecondOfDay();
                             channel.addReactionById(message.getId(), "U+26A0").queue();
-                            channel.sendMessage("Cooldown aktiv. Bitte warte " + delay + " Sekunden.").queue();
+                            channel.sendMessage("Cooldown aktiv. Bitte warte noch " + missingTime + " Sekunden.").queue();
                         }
                     }
                 }
