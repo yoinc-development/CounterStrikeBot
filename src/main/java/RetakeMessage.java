@@ -49,12 +49,11 @@ public class RetakeMessage extends ListenerAdapter {
             //origin channel of message
             MessageChannel channel = event.getChannel();
 
-            /*
+
             if(!hasTimerStarted) {
                 startCongratulateTask(channel);
                 hasTimerStarted = true;
             }
-             */
 
             //message object
             Message message = event.getMessage();
@@ -98,12 +97,10 @@ public class RetakeMessage extends ListenerAdapter {
                         }
                     }
                 }
-                /*
                 if(forceWinnersMatcher.matches()) {
                     ConsoleUpdate consoleUpdate = new ConsoleUpdate(properties, channel);
                     consoleUpdate.congratulateStreakWinners();
                 }
-                 */
             }
         } catch (AuthenticationException ex) {
             System.out.println("RCON Authentication failed.");
@@ -121,6 +118,6 @@ public class RetakeMessage extends ListenerAdapter {
             }
         };
         //checks every hour
-        new Timer().schedule (hourSchedule, 0l, 3600000);
+        new Timer().schedule(hourSchedule, 1000, 3600000);
     }
 }
