@@ -1,6 +1,7 @@
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.kronos.rkon.core.Rcon;
@@ -89,11 +90,11 @@ public class RetakeMessage extends ListenerAdapter {
 
                             System.out.println(logMessage.toString());
 
-                            channel.addReactionById(message.getId(), "U+1F504").queue();
+                            channel.addReactionById(message.getId(), Emoji.fromUnicode("U+1F504")).queue();
                             channel.sendMessage("Map gewechselt.").queue();
                         } else {
                             int missingTime = endTime.toSecondOfDay() - currentTime.toSecondOfDay();
-                            channel.addReactionById(message.getId(), "U+26A0").queue();
+                            channel.addReactionById(message.getId(), Emoji.fromUnicode("U+26A0")).queue();
                             channel.sendMessage("Cooldown aktiv. Bitte warte noch " + missingTime + " Sekunden.").queue();
                         }
                     }
