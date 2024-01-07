@@ -49,12 +49,13 @@ public class RetakeMessage extends ListenerAdapter {
             //origin channel of message
             MessageChannel channel = event.getChannel();
 
-
+/*
+            //this has never really worked.
             if(!hasTimerStarted) {
                 startCongratulateTask(channel);
                 hasTimerStarted = true;
             }
-
+ */
             //message object
             Message message = event.getMessage();
             //role object obtained via id set in properties
