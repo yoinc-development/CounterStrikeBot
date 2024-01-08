@@ -1,23 +1,19 @@
-import net.dv8tion.jda.api.entities.Message;
+package messages;
+
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.kronos.rkon.core.Rcon;
 import net.kronos.rkon.core.ex.AuthenticationException;
+import retakeServer.ConsoleUpdate;
 
 import java.io.IOException;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class RetakeMessage extends ListenerAdapter {
-
-    private final String CHANGELEVEL_PATTERN = "(changelevel )(de_{1}[a-zA-Z]+)";
-    private final String FORCEWINNERS_PATTERN = "(forcewinners)";
     private final DateTimeFormatter LOGGED_TIME = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     private Properties properties;
@@ -44,45 +40,28 @@ public class RetakeMessage extends ListenerAdapter {
     }
 
     @Override
-    public void onMessageReceived(MessageReceivedEvent event) {
+    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
+
         try {
-
-            //origin channel of message
-            MessageChannel channel = event.getChannel();
-
-/*
-            //this has never really worked.
-            if(!hasTimerStarted) {
-                startCongratulateTask(channel);
-                hasTimerStarted = true;
-            }
- */
-            //message object
-            Message message = event.getMessage();
             //role object obtained via id set in properties
             Role allowedRole = event.getGuild().getRoleById(allowedRoleId);
             //rcon channel
             Rcon rcon = new Rcon(serverIp, serverPort, serverPassword.getBytes());
-            //excepted message pattern
-            Pattern changelevelPattern = Pattern.compile(CHANGELEVEL_PATTERN);
-            Pattern forceWinnersPattern = Pattern.compile(FORCEWINNERS_PATTERN);
             //list of allowed maps to switch to set in properties
             List<String> allowedMapsList = Arrays.asList(allowedMaps.split(","));
 
             if (event.getMember().getRoles().contains(allowedRole)) {
-                Matcher changelevelMatcher = changelevelPattern.matcher(message.getContentDisplay());
-                Matcher forceWinnersMatcher = forceWinnersPattern.matcher(message.getContentDisplay());
-                if (changelevelMatcher.matches()) {
-                    String requestedMap = changelevelMatcher.group(2);
-                    if (allowedMapsList.contains(requestedMap)) {
+
+                if ("changelevel".equals(event.getName())) {
+                    if (allowedMapsList.contains(event.getOption("map").getAsString())) {
                         LocalTime currentTime = LocalTime.now();
                         if (endTime == null || currentTime.isAfter(endTime)) {
                             StringBuilder logMessage = new StringBuilder();
                             logMessage.append("---\n");
                             logMessage.append("Requested Time: " + currentTime.format(LOGGED_TIME) + "\n");
-                            logMessage.append(event.getAuthor().getName() + ": " + message.getContentDisplay() + "\n");
+                            //logMessage.append(event.getMember().getNickname() + ": " +  + "\n");
 
-                            rcon.command(message.getContentDisplay());
+                            rcon.command("changelevel " + event.getOption("map"));
                             endTime = LocalTime.now().plusSeconds(delay);
 
                             logMessage.append("End Time: " + endTime.format(LOGGED_TIME) + "\n");
@@ -90,31 +69,29 @@ public class RetakeMessage extends ListenerAdapter {
 
                             System.out.println(logMessage.toString());
 
-                            channel.addReactionById(message.getId(), Emoji.fromUnicode("U+1F504")).queue();
-                            channel.sendMessage("Map gewechselt.").queue();
+                            event.reply("Map gewechselt auf " + event.getOption("map")).queue();
                         } else {
                             int missingTime = endTime.toSecondOfDay() - currentTime.toSecondOfDay();
-                            channel.addReactionById(message.getId(), Emoji.fromUnicode("U+26A0")).queue();
-                            channel.sendMessage("Cooldown aktiv. Bitte warte noch " + missingTime + " Sekunden.").queue();
+                            event.reply("Cooldown aktiv. Bitte warte noch " + missingTime + " Sekunden.").queue();
                         }
+                    } else {
+                        event.reply("Diese Map ist nicht gültig.").queue();
                     }
-                }
-                if(forceWinnersMatcher.matches()) {
-                    ConsoleUpdate consoleUpdate = new ConsoleUpdate(properties, channel);
-                    consoleUpdate.congratulateStreakWinners();
+                } else {
+                    event.reply("Du darfst leider keine Maps wechseln. :(").queue();
                 }
             }
-        } catch (AuthenticationException ex) {
-            System.out.println("RCON Authentication failed.");
         } catch (IOException ex) {
-            System.out.println("IO Exception");
+            event.reply("Leider ist etwas kaputt gegangen. :(").queue();
+        } catch (AuthenticationException ex) {
+            event.reply("Leider lief etwas beim Server schief. :(").queue();
         }
     }
 
     private void startCongratulateTask(MessageChannel channel) {
-        TimerTask hourSchedule = new TimerTask () {
+        TimerTask hourSchedule = new TimerTask() {
             @Override
-            public void run () {
+            public void run() {
                 ConsoleUpdate consoleUpdate = new ConsoleUpdate(properties, channel);
                 consoleUpdate.congratulateStreakWinners();
             }

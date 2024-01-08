@@ -1,9 +1,12 @@
+import messages.CSStatsMessage;
+import messages.RetakeMessage;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.io.IOException;
@@ -24,11 +27,12 @@ public class StartUp implements EventListener {
 
             JDA jda = JDABuilder.createDefault(properties.getProperty("discord.apiToken"))
                     .addEventListeners(new StartUp())
+                    .addEventListeners(new CSStatsMessage(properties))
                     .addEventListeners(new RetakeMessage(properties))
                     .build();
 
             jda.getPresence().setActivity(Activity.playing("YOINC.ch"));
-            jda.updateCommands().addCommands(Commands.slash("changelevel", "Change the level. Add the map name to the command (changelevel de_dust).")).queue();
+            jda.updateCommands().addCommands(Commands.slash("changelevel", "Change the level.").addOption(OptionType.STRING,"map","The map you want to play.")).queue();
             jda.awaitReady();
         } catch (InterruptedException ex) {
             System.out.println("Nice. Something interrupted the connection.");
