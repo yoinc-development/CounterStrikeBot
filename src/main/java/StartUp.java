@@ -32,7 +32,9 @@ public class StartUp implements EventListener {
                     .build();
 
             jda.getPresence().setActivity(Activity.playing("YOINC.ch"));
-            jda.updateCommands().addCommands(Commands.slash("changelevel", "Change the level.").addOption(OptionType.STRING,"map","The map you want to play.")).queue();
+            jda.updateCommands().addCommands(
+                    Commands.slash("stats", "Sieh dir Player stats an.").addOption(OptionType.STRING,"player","Gib die SteamID des Users ein."),
+                    Commands.slash("map", "Ändere die Map.").addOption(OptionType.STRING,"map","Die Map, welche du spielen willst.")).queue();
             jda.awaitReady();
         } catch (InterruptedException ex) {
             System.out.println("Nice. Something interrupted the connection.");
