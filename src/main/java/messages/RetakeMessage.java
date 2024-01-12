@@ -8,7 +8,6 @@ import net.kronos.rkon.core.Rcon;
 import net.kronos.rkon.core.ex.AuthenticationException;
 import retakeServer.ConsoleUpdate;
 
-import java.io.IOException;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -44,44 +43,37 @@ public class RetakeMessage extends ListenerAdapter {
 
         if ("map".equals(event.getName())) {
 
-                //role object obtained via id set in properties
-                Role allowedRole = event.getGuild().getRoleById(allowedRoleId);
-                //rcon channel
-                //Rcon rcon = new Rcon(serverIp, serverPort, serverPassword.getBytes());
-                //list of allowed maps to switch to set in properties
-                List<String> allowedMapsList = Arrays.asList(allowedMaps.split(","));
+            //rcon channel
+            //Rcon rcon = new Rcon(serverIp, serverPort, serverPassword.getBytes());
+            //list of allowed maps to switch to set in properties
+            List<String> allowedMapsList = Arrays.asList(allowedMaps.split(","));
 
-                if (event.getMember().getRoles().contains(event.getGuild().getRoleById(allowedRoleId))) {
-                    if (allowedMapsList.contains(event.getOption("map").getAsString())) {
-                        LocalTime currentTime = LocalTime.now();
-                        if (endTime == null || currentTime.isAfter(endTime)) {
-                            StringBuilder logMessage = new StringBuilder();
-                            logMessage.append("---\n");
-                            logMessage.append("Requested Time: " + currentTime.format(LOGGED_TIME) + "\n");
-                            //logMessage.append(event.getMember().getNickname() + ": " +  + "\n");
+            if (event.getMember().getRoles().contains(event.getGuild().getRoleById(allowedRoleId))) {
+                if (allowedMapsList.contains(event.getOption("map").getAsString())) {
+                    LocalTime currentTime = LocalTime.now();
+                    if (endTime == null || currentTime.isAfter(endTime)) {
+                        StringBuilder logMessage = new StringBuilder();
+                        logMessage.append("---\n");
+                        logMessage.append("Requested Time: " + currentTime.format(LOGGED_TIME) + "\n");
+                        //logMessage.append(event.getMember().getNickname() + ": " +  + "\n");
 
-                            //rcon.command("changelevel " + event.getOption("map"));
-                            endTime = LocalTime.now().plusSeconds(delay);
+                        //rcon.command("changelevel " + event.getOption("map"));
+                        endTime = LocalTime.now().plusSeconds(delay);
 
-                            logMessage.append("End Time: " + endTime.format(LOGGED_TIME) + "\n");
-                            logMessage.append("---\n");
+                        logMessage.append("End Time: " + endTime.format(LOGGED_TIME) + "\n");
+                        logMessage.append("---\n");
 
-                            System.out.println(logMessage.toString());
+                        System.out.println(logMessage.toString());
 
-                            event.reply("Map gewechselt auf " + event.getOption("map")).queue();
-                        } else {
-                            int missingTime = endTime.toSecondOfDay() - currentTime.toSecondOfDay();
-                            event.reply("Cooldown aktiv. Bitte warte noch " + missingTime + " Sekunden.").queue();
-                        }
+                        event.reply("Map gewechselt auf " + event.getOption("map")).queue();
                     } else {
-                        event.reply("Diese Map ist nicht gültig.").queue();
+                        int missingTime = endTime.toSecondOfDay() - currentTime.toSecondOfDay();
+                        event.reply("Cooldown aktiv. Bitte warte noch " + missingTime + " Sekunden.").queue();
                     }
+                } else {
+                    event.reply("Diese Map ist nicht gültig.").queue();
                 }
-
-        } else {
-            //this is to prevent a second reply to the same event which is being handled in another class.
-            //it's not the ideal solution.
-            if (!event.getName().equals("stats")) {
+            } else {
                 event.reply("Du darfst leider keine Maps wechseln. :(").queue();
             }
         }
