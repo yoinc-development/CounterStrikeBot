@@ -1,6 +1,6 @@
 package model;
 
-public class Stats {
+public class SingleStat {
 
     private String name;
     private long value;

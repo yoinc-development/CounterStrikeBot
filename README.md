@@ -11,7 +11,7 @@ These properties are relevant to connect to Discord and to be aware of the permi
 - `discord.allowedRoleId` - the ID of a user group to use the command 
 
 These properties are currently relevant for the CS2 stats feature. 
-- `` -
+- `steam.api` - Steam Web API key
 - `` -
 - `` -
 - `` -

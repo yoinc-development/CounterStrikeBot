@@ -1,7 +1,8 @@
 package messages;
 
 import com.google.gson.Gson;
-import model.CSPlayer;
+import com.google.gson.JsonSyntaxException;
+import model.ResponseData;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
@@ -15,6 +16,9 @@ import java.util.Properties;
 public class CSStatsMessage extends ListenerAdapter {
 
     Properties properties;
+
+    String requestedUser;
+
     public CSStatsMessage(Properties properties) {
         super();
 
@@ -26,105 +30,101 @@ public class CSStatsMessage extends ListenerAdapter {
 
         if ("stats".equals(event.getName())) {
             try {
-                HttpClient client = HttpClient.newHttpClient();
+                requestedUser = event.getOption("player").getAsString().toLowerCase();
+                ResponseData responseData;
 
-                HttpRequest request;
-
-                String requestedUser = event.getOption("player").getAsString().toLowerCase();
                 switch (requestedUser) {
                     case "aatha":
                     case "aathavan":
                     case "doge":
-                        request = HttpRequest.newBuilder()
-                                .uri(URI.create("https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v0002/?key=" + properties.get("steam.api") + "&appid=730&steamid=76561198077352267"))
-                                .build();
+                        responseData = getUserAndStats("76561198077352267");
                         break;
                     case "dario":
                     case "däse":
-                        request = HttpRequest.newBuilder()
-                                .uri(URI.create("https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v0002/?key=" + properties.get("steam.api") + "&appid=730&steamid=76561198213130649"))
-                                .build();
+                        responseData = getUserAndStats("76561198213130649");
                         break;
                     case "janes":
                     case "jay":
                     case "grey":
-                        request = HttpRequest.newBuilder()
-                                .uri(URI.create("https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v0002/?key=" + properties.get("steam.api") + "&appid=730&steamid=76561198014462666"))
-                                .build();
+                        responseData = getUserAndStats("76561198014462666");
                         break;
                     case "juan":
                     case "juanita":
-                        request = HttpRequest.newBuilder()
-                                .uri(URI.create("https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v0002/?key=" + properties.get("steam.api") + "&appid=730&steamid=76561198098219020"))
-                                .build();
+                        responseData = getUserAndStats("76561198098219020");
                         break;
                     case "korunde":
                     case "koray":
                     case "ossas":
-                        request = HttpRequest.newBuilder()
-                                .uri(URI.create("https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v0002/?key=" + properties.get("steam.api") + "&appid=730&steamid=76561198071064798"))
-                                .build();
+                        responseData = getUserAndStats("76561198071064798");
                         break;
                     case "nabil":
                     case "drifter":
-                        request = HttpRequest.newBuilder()
-                                .uri(URI.create("https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v0002/?key=" + properties.get("steam.api") + "&appid=730&steamid=76561198088520949"))
-                                .build();
+                        responseData = getUserAndStats("76561198088520949");
                         break;
                     case "nassim":
-                        request = HttpRequest.newBuilder()
-                                .uri(URI.create("https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v0002/?key=" + properties.get("steam.api") + "&appid=730&steamid=76561198203636285"))
-                                .build();
+                        responseData = getUserAndStats("76561198203636285");
                         break;
                     case "nici":
                     case "nigglz":
                     case "n'lölec":
-                        request = HttpRequest.newBuilder()
-                                .uri(URI.create("https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v0002/?key=" + properties.get("steam.api") + "&appid=730&steamid=76561198401419666"))
-                                .build();
+                        responseData = getUserAndStats("76561198401419666");
                         break;
                     case "ravi":
                     case "vi24":
-                        request = HttpRequest.newBuilder()
-                                .uri(URI.create("https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v0002/?key=" + properties.get("steam.api") + "&appid=730&steamid=76561198071074164"))
-                                .build();
+                        responseData = getUserAndStats("76561198071074164");
                         break;
                     case "pavi":
                     case "seraph":
-                        request = HttpRequest.newBuilder()
-                                .uri(URI.create("https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v0002/?key=" + properties.get("steam.api") + "&appid=730&steamid=76561198102224384"))
-                                .build();
+                        responseData = getUserAndStats("76561198102224384");
                         break;
                     case "sani":
                     case "baka":
                     case "mugiwarabaka":
-                        request = HttpRequest.newBuilder()
-                                .uri(URI.create("https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v0002/?key=" + properties.get("steam.api") + "&appid=730&steamid=76561197984892194"))
-                                .build();
+                        responseData = getUserAndStats("76561197984892194");
+                        break;
+                    case "vantriko":
+                    case "v4ntr1ko":
+                    case "enrico":
+                        responseData = getUserAndStats("76561198316963738");
                         break;
                     default:
-                        request = HttpRequest.newBuilder()
-                                .uri(URI.create("https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v0002/?key=" + properties.get("steam.api") + "&appid=730&steamid=" + requestedUser))
-                                .build();
+                        responseData = getUserAndStats(requestedUser);
                         break;
                 }
 
-
-                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-                CSPlayer csPlayer = new Gson().fromJson(response.body(), CSPlayer.class);
-                csPlayer.setNickname(requestedUser);
-
-                event.reply(csPlayer.returnBasicInfo()).queue();
+                requestedUser = responseData.getSteamUserInfo().getPlayers().get(0).getPersonaname();
+                event.reply(responseData.returnBasicInfo()).queue();
 
             } catch (InterruptedException ex) {
-
+                //TODO: return a meaningful message.
             } catch (IOException ex) {
-
-            } catch (NullPointerException ex) {
-                event.reply("Für " + event.getOption("player").getAsString() + " können keine Stats geladen werden. (Steam Privacy Settings?)").queue();
+                //TODO: return a meaningful message.
+            } catch (NullPointerException | JsonSyntaxException ex) {
+                event.reply("Für " + requestedUser + " können keine Stats geladen werden. (Steam Privacy Settings?)").queue();
             }
         }
     }
 
+    private ResponseData getUserAndStats(String steamID) throws InterruptedException, IOException {
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        HttpRequest request;
+        ResponseData responseData;
+
+        request = HttpRequest.newBuilder()
+                .uri(URI.create("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=" + properties.get("steam.api") + "&steamids=" + steamID ))
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        responseData = new Gson().fromJson(response.body(), ResponseData.class);
+
+        request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v0002/?key=" + properties.get("steam.api") + "&appid=730&steamid=" + steamID ))
+                .build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        responseData.setPlayerstats(new Gson().fromJson(response.body(), ResponseData.class).getPlayerstats());
+
+        return responseData;
+    }
 }

@@ -4,7 +4,7 @@ import java.util.List;
 
 public class PlayerStats {
     private long steamID;
-    private List<Stats> stats;
+    private List<SingleStat> stats;
 
     public long getSteamID() {
         return steamID;
@@ -14,11 +14,11 @@ public class PlayerStats {
         this.steamID = steamID;
     }
 
-    public List<Stats> getStats() {
+    public List<SingleStat> getStats() {
         return stats;
     }
 
-    public void setStats(List<Stats> stats) {
+    public void setStats(List<SingleStat> stats) {
         this.stats = stats;
     }
 }
