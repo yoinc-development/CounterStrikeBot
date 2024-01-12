@@ -1,5 +1,4 @@
-import messages.CSStatsMessage;
-import messages.RetakeMessage;
+import listeners.CounterStrikeBotListener;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
@@ -27,14 +26,14 @@ public class StartUp implements EventListener {
 
             JDA jda = JDABuilder.createDefault(properties.getProperty("discord.apiToken"))
                     .addEventListeners(new StartUp())
-                    .addEventListeners(new CSStatsMessage(properties))
-                    .addEventListeners(new RetakeMessage(properties))
+                    .addEventListeners(new CounterStrikeBotListener(properties))
                     .build();
 
             jda.getPresence().setActivity(Activity.playing("YOINC.ch"));
             jda.updateCommands().addCommands(
+                    Commands.slash("map", "Ändere die Map.").addOption(OptionType.STRING,"map","Die Map, welche du spielen willst."),
                     Commands.slash("stats", "Sieh dir Player stats an.").addOption(OptionType.STRING,"player","Gib die SteamID des Users ein."),
-                    Commands.slash("map", "Ändere die Map.").addOption(OptionType.STRING,"map","Die Map, welche du spielen willst.")).queue();
+                    Commands.slash("compare", "Vergleiche zwei Spieler.").addOption(OptionType.STRING, "playerone", "Der erste zu vergleichende Spieler.").addOption(OptionType.STRING, "playertwo", "Der zweite zu vergleichende Spieler.")).queue();
             jda.awaitReady();
         } catch (InterruptedException ex) {
             System.out.println("Nice. Something interrupted the connection.");
