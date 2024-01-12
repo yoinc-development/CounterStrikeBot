@@ -13,8 +13,8 @@
     <url>https://www.github.com/janesth/retakeBot</url>
 
     <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>20</maven.compiler.source>
+        <maven.compiler.target>20</maven.compiler.target>
     </properties>
 
     <dependencies>
@@ -26,13 +26,24 @@
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-            <version>4.4.0_350</version>
+            <version>5.0.0-beta.5</version>
         </dependency>
         <dependency>
             <groupId>commons-net</groupId>
             <artifactId>commons-net</artifactId>
             <version>3.6</version>
         </dependency>
+        <dependency>
+            <groupId>org.codehaus.httpcache4j</groupId>
+            <artifactId>httpcache4j-api</artifactId>
+            <version>5.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+        </dependency>
+
     </dependencies>
     <repositories>
         <repository>

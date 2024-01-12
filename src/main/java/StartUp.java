@@ -1,12 +1,14 @@
+import messages.CSStatsMessage;
+import messages.RetakeMessage;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.events.GenericEvent;
-import net.dv8tion.jda.api.events.ReadyEvent;
+import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
-import javax.annotation.Nonnull;
-import javax.security.auth.login.LoginException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
@@ -25,13 +27,15 @@ public class StartUp implements EventListener {
 
             JDA jda = JDABuilder.createDefault(properties.getProperty("discord.apiToken"))
                     .addEventListeners(new StartUp())
+                    .addEventListeners(new CSStatsMessage(properties))
                     .addEventListeners(new RetakeMessage(properties))
                     .build();
 
             jda.getPresence().setActivity(Activity.playing("YOINC.ch"));
+            jda.updateCommands().addCommands(
+                    Commands.slash("stats", "Sieh dir Player stats an.").addOption(OptionType.STRING,"player","Gib die SteamID des Users ein."),
+                    Commands.slash("map", "Ändere die Map.").addOption(OptionType.STRING,"map","Die Map, welche du spielen willst.")).queue();
             jda.awaitReady();
-        } catch (LoginException ex) {
-            System.out.println("Nice. Login failed.");
         } catch (InterruptedException ex) {
             System.out.println("Nice. Something interrupted the connection.");
         } catch (IOException ex) {
@@ -40,7 +44,7 @@ public class StartUp implements EventListener {
     }
 
     @Override
-    public void onEvent(@Nonnull GenericEvent genericEvent) {
+    public void onEvent(GenericEvent genericEvent) {
         if (genericEvent instanceof ReadyEvent) {
             String startMessage = LocalDateTime.now().format(START_TIME) + " - Started application.";
             System.out.println(startMessage);
