@@ -10,51 +10,94 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Locale;
 import java.util.Properties;
+import java.util.ResourceBundle;
 
 public class CsStatsService {
 
-    Properties properties;
+    private Properties properties;
+    ResourceBundle resourceBundle;
 
     public CsStatsService(Properties properties) {
         this.properties = properties;
     }
 
-    public String handleStatsEvent(SlashCommandInteractionEvent event) {
+    public String handleStatsEvent(SlashCommandInteractionEvent event, String locale) {
+        resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
         String requestedUser = event.getOption("player").getAsString().toLowerCase();
 
         try {
             ResponseData responseData = handleGlobalOrNormalUser(requestedUser);
             requestedUser = responseData.getSteamUserInfo().getPlayers().get(0).getPersonaname();
-            return responseData.returnBasicInfo();
+            return responseData.returnBasicInfo(resourceBundle);
         } catch (InterruptedException ex) {
-            return "Leider gab es Verbindungsprobleme. :(";
+            return resourceBundle.getString("error.interruptedException");
         } catch (IOException ex) {
-            return "Wow! Da ging etwas kaputt. Sorry. :(";
+            return resourceBundle.getString("error.ioException");
         } catch (NullPointerException | JsonSyntaxException ex) {
-            return "Für " + requestedUser + " können keine Stats geladen werden. (Steam Privacy Settings?)";
+            return resourceBundle.getString("error.privacySettings").replace("%s", requestedUser);
         }
     }
 
-    public String handleCompareEvent(SlashCommandInteractionEvent event) {
+    public String handleCompareEvent(SlashCommandInteractionEvent event, String locale) {
+        resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
         try {
             String requestedUserOne = event.getOption("playerone").getAsString().toLowerCase();
             String requestedUserTwo = event.getOption("playertwo").getAsString().toLowerCase();
-
             return comparePlayers(handleGlobalOrNormalUser(requestedUserOne), handleGlobalOrNormalUser(requestedUserTwo));
         } catch (NullPointerException ex) {
-            return "Die Spieler wurden nicht korrekt mitgegeben.";
+            return resourceBundle.getString("error.wrongQueryParameters");
         } catch (InterruptedException ex) {
-            return "Leider gab es Verbindungsprobleme. :(";
+            return resourceBundle.getString("error.interruptedException");
         } catch (IOException ex) {
-            return "Wow! Da ging etwas kaputt. Sorry. :(";
+            return resourceBundle.getString("error.ioException");
         }
     }
 
     private String comparePlayers(ResponseData playerOneData, ResponseData playerTwoData) {
-        //TODO compare two player data models
-        return "Nothing happens as of now.";
+
+        StringBuilder returnString = new StringBuilder();
+
+        returnString.append(resourceBundle.getString("compare.title").replace("%s", playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname()).replace("%t",playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname())).append("\n\n");
+        returnString.append(resourceBundle.getString("stats.kills") + getWinner(playerOneData, playerTwoData, "total_kills", true)).append("\n");;
+        returnString.append(resourceBundle.getString("stats.deaths") + getWinner(playerOneData, playerTwoData, "total_deaths", false)).append("\n");;
+        returnString.append(resourceBundle.getString("stats.planted") +getWinner(playerOneData, playerTwoData, "total_planted_bombs", true)).append("\n");;
+        returnString.append(resourceBundle.getString("stats.defused") + getWinner(playerOneData, playerTwoData, "total_defused_bombs", true)).append("\n");;
+        returnString.append(resourceBundle.getString("stats.wins") + getWinner(playerOneData, playerTwoData, "total_wins", true)).append("\n");;
+        returnString.append(resourceBundle.getString("stats.damage") + getWinner(playerOneData, playerTwoData, "total_damage_done", true)).append("\n");;
+
+        return returnString.toString();
     }
+
+    private String getWinner(ResponseData playerOneData, ResponseData playerTwoData, String statName, boolean higherRequired) {
+
+        long playerOneLong = playerOneData.getLongStatsForName(statName);
+        long playerTwoLong = playerTwoData.getLongStatsForName(statName);
+
+        if(higherRequired) {
+            if(playerOneLong > playerTwoLong) {
+                return "**" + playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerOneLong + ")** vs "
+                        + playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerTwoLong + ")";
+            } else if(playerTwoLong > playerOneLong) {
+                return "**" + playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerTwoLong + ")** vs "
+                        + playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerOneLong + ")";
+            } else {
+                return resourceBundle.getString("compare.equal").replace("%s", String.valueOf(playerOneLong));
+            }
+        } else {
+            if(playerOneLong < playerTwoLong) {
+                return "**" + playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerOneLong + ")** vs "
+                        + playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerTwoLong  + ")";
+            } else if(playerTwoLong < playerOneLong) {
+                return "**" + playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerTwoLong + ")** vs "
+                        + playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerOneLong  + ")";
+            } else {
+                return resourceBundle.getString("compare.equal").replace("%s", String.valueOf(playerOneLong));
+            }
+        }
+    }
+
     private ResponseData handleGlobalOrNormalUser(String requestedUser) throws NullPointerException, InterruptedException, IOException {
 
         ResponseData responseData;

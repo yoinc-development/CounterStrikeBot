@@ -4,9 +4,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 public class RetakeService {
 
@@ -18,6 +16,7 @@ public class RetakeService {
     private int delay;
     private String allowedMaps;
     private LocalTime endTime;
+    private ResourceBundle resourceBundle;
 
     public RetakeService(Properties properties) {
         this.allowedRoleId = properties.getProperty("discord.allowedRoleId");
@@ -28,7 +27,8 @@ public class RetakeService {
         this.allowedMaps = properties.getProperty("csgo.maps");
     }
 
-    public String handleMapEvent(SlashCommandInteractionEvent event) {
+    public String handleMapEvent(SlashCommandInteractionEvent event, String locale) {
+        resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
         //rcon channel
         //Rcon rcon = new Rcon(serverIp, serverPort, serverPassword.getBytes());
         //list of allowed maps to switch to set in properties

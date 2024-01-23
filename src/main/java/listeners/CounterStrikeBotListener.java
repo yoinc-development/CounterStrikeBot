@@ -18,16 +18,20 @@ public class CounterStrikeBotListener extends ListenerAdapter {
 
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
+        String locale = "en";
+        if(event.getInteraction().getUserLocale().getLocale().equals("de")) {
+            locale = "de";
+        }
         if ("stats".equals(event.getName())) {
-            event.reply(csStatsService.handleStatsEvent(event)).queue();
+            event.reply(csStatsService.handleStatsEvent(event, locale)).queue();
         }
 
         if ("compare".equals(event.getName())) {
-            event.reply(csStatsService.handleCompareEvent(event)).queue();
+            event.reply(csStatsService.handleCompareEvent(event, locale)).queue();
         }
 
         if ("map".equals(event.getName())) {
-            event.reply(retakeService.handleMapEvent(event)).queue();
+            event.reply(retakeService.handleMapEvent(event, locale)).queue();
         }
     }
 
