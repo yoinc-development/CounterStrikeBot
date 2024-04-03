@@ -77,20 +77,20 @@ public class CsStatsService {
 
         if(higherRequired) {
             if(playerOneLong > playerTwoLong) {
-                return "**" + playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerOneLong + ")** vs "
+                return "** " + playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerOneLong + ") ** vs "
                         + playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerTwoLong + ")";
             } else if(playerTwoLong > playerOneLong) {
-                return "**" + playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerTwoLong + ")** vs "
+                return "** " + playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerTwoLong + ") ** vs "
                         + playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerOneLong + ")";
             } else {
                 return resourceBundle.getString("compare.equal").replace("%s", String.valueOf(playerOneLong));
             }
         } else {
             if(playerOneLong < playerTwoLong) {
-                return "**" + playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerOneLong + ")** vs "
+                return "** " + playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerOneLong + ") ** vs "
                         + playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerTwoLong  + ")";
             } else if(playerTwoLong < playerOneLong) {
-                return "**" + playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerTwoLong + ")** vs "
+                return "** " + playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerTwoLong + ") ** vs "
                         + playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerOneLong  + ")";
             } else {
                 return resourceBundle.getString("compare.equal").replace("%s", String.valueOf(playerOneLong));
