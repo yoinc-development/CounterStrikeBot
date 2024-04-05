@@ -1,6 +1,10 @@
 package model;
 
 import com.google.gson.annotations.SerializedName;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+
+import java.util.ResourceBundle;
 
 public class ResponseData {
 
@@ -24,17 +28,21 @@ public class ResponseData {
         this.steamUserInfo = steamUserInfo;
     }
 
-    public String returnBasicInfo() {
-        return new StringBuilder().append("__Stats für ").append(getSteamUserInfo().getPlayers().get(0).getPersonaname()).append(":__\n")
-                .append("Kills: _").append(returnLongStatsForName("total_kills")).append("_\n")
-                .append("Deaths: _").append(returnLongStatsForName("total_deaths")).append("_\n")
-                .append("Bomben geplant: _").append(returnLongStatsForName("total_planted_bombs")).append("_\n")
-                .append("Bomben defused: _").append(returnLongStatsForName("total_defused_bombs")).append("_\n")
-                .append("Totale Wins: _").append(returnLongStatsForName("total_wins")).append("_\n")
-                .append("Gesamter Schaden: _").append(returnLongStatsForName("total_damage_done")).append("_").toString();
+    public EmbedBuilder returnBasicInfo(ResourceBundle resourceBundle) {
+
+        return new EmbedBuilder()
+                .setTitle(resourceBundle.getString("stats.title").replace("%s", getSteamUserInfo().getPlayers().get(0).getPersonaname()))
+                .setAuthor(resourceBundle.getString("stats.author"), "https://www.yoinc.ch")
+                .setImage(getSteamUserInfo().getPlayers().get(0).getAvatarmedium())
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.kills"), String.valueOf(getLongStatsForName("total_kills")), true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.deaths"),String.valueOf(getLongStatsForName("total_deaths")),true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.wins"),String.valueOf(getLongStatsForName("total_wins")),true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.planted"),String.valueOf(getLongStatsForName("total_planted_bombs")),true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.defused"),String.valueOf(getLongStatsForName("total_defused_bombs")),true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.damage"),String.valueOf(getLongStatsForName("total_damage_done")),true));
     }
 
-    private long returnLongStatsForName(String name) {
+    public long getLongStatsForName(String name) {
         for(SingleStat stat : getPlayerstats().getStats()) {
             if(stat.getName().equals(name)) {
                 return stat.getValue();
