@@ -3,7 +3,9 @@ package services;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import model.ResponseData;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import org.codehaus.plexus.util.StringUtils;
 
 import java.io.IOException;
 import java.net.URI;
@@ -23,20 +25,19 @@ public class CsStatsService {
         this.properties = properties;
     }
 
-    public String handleStatsEvent(SlashCommandInteractionEvent event, String locale) {
+    public EmbedBuilder handleStatsEvent(SlashCommandInteractionEvent event, String locale) {
         resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
         String requestedUser = event.getOption("player").getAsString().toLowerCase();
 
         try {
             ResponseData responseData = handleGlobalOrNormalUser(requestedUser);
-            requestedUser = responseData.getSteamUserInfo().getPlayers().get(0).getPersonaname();
             return responseData.returnBasicInfo(resourceBundle);
         } catch (InterruptedException ex) {
-            return resourceBundle.getString("error.interruptedException");
+            return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedException"));
         } catch (IOException ex) {
-            return resourceBundle.getString("error.ioException");
+            return new EmbedBuilder().setTitle(resourceBundle.getString("error.ioException"));
         } catch (NullPointerException | JsonSyntaxException ex) {
-            return resourceBundle.getString("error.privacySettings").replace("%s", requestedUser);
+            return new EmbedBuilder().setTitle(resourceBundle.getString("error.privacySettings").replace("%s", requestedUser));
         }
     }
 
@@ -77,20 +78,20 @@ public class CsStatsService {
 
         if(higherRequired) {
             if(playerOneLong > playerTwoLong) {
-                return "** " + playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerOneLong + ") ** vs "
+                return "** :star: " + playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerOneLong + ") ** vs "
                         + playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerTwoLong + ")";
             } else if(playerTwoLong > playerOneLong) {
-                return "** " + playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerTwoLong + ") ** vs "
+                return "** :star: " + playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerTwoLong + ") ** vs "
                         + playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerOneLong + ")";
             } else {
                 return resourceBundle.getString("compare.equal").replace("%s", String.valueOf(playerOneLong));
             }
         } else {
             if(playerOneLong < playerTwoLong) {
-                return "** " + playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerOneLong + ") ** vs "
+                return "** :star: " + playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerOneLong + ") ** vs "
                         + playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerTwoLong  + ")";
             } else if(playerTwoLong < playerOneLong) {
-                return "** " + playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerTwoLong + ") ** vs "
+                return "** :star: " + playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerTwoLong + ") ** vs "
                         + playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerOneLong  + ")";
             } else {
                 return resourceBundle.getString("compare.equal").replace("%s", String.valueOf(playerOneLong));
@@ -157,7 +158,11 @@ public class CsStatsService {
                 responseData = getUserAndStats("76561198316963738");
                 break;
             default:
-                responseData = getUserAndStats(requestedUser);
+                if(StringUtils.isNumeric(requestedUser)) {
+                    responseData = getUserAndStats(requestedUser);
+                } else {
+                    throw new IOException();
+                }
                 break;
         }
 

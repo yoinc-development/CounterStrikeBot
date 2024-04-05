@@ -29,7 +29,7 @@ public class CounterStrikeBotListener extends ListenerAdapter {
 
         if ("stats".equals(event.getName())) {
             event.deferReply().queue();
-            event.getHook().sendMessage(csStatsService.handleStatsEvent(event, locale)).queue();
+            event.getHook().sendMessageEmbeds(csStatsService.handleStatsEvent(event, locale).build()).queue();
         }
 
         if ("compare".equals(event.getName())) {
