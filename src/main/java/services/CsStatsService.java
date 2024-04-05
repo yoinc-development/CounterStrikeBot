@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import model.ResponseData;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -35,40 +36,40 @@ public class CsStatsService {
         } catch (InterruptedException ex) {
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedException"));
         } catch (IOException ex) {
-            return new EmbedBuilder().setTitle(resourceBundle.getString("error.ioException"));
+            return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedException"));
         } catch (NullPointerException | JsonSyntaxException ex) {
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.privacySettings").replace("%s", requestedUser));
         }
     }
 
-    public String handleCompareEvent(SlashCommandInteractionEvent event, String locale) {
+    public EmbedBuilder handleCompareEvent(SlashCommandInteractionEvent event, String locale) {
         resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
         try {
             String requestedUserOne = event.getOption("playerone").getAsString().toLowerCase();
             String requestedUserTwo = event.getOption("playertwo").getAsString().toLowerCase();
             return comparePlayers(handleGlobalOrNormalUser(requestedUserOne), handleGlobalOrNormalUser(requestedUserTwo));
         } catch (NullPointerException ex) {
-            return resourceBundle.getString("error.wrongQueryParameters");
+            return new EmbedBuilder().setTitle(resourceBundle.getString("error.wrongQueryParameters"));
         } catch (InterruptedException ex) {
-            return resourceBundle.getString("error.interruptedException");
+            return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedException"));
         } catch (IOException ex) {
-            return resourceBundle.getString("error.ioException");
+            return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedException"));
         }
     }
 
-    private String comparePlayers(ResponseData playerOneData, ResponseData playerTwoData) {
+    private EmbedBuilder comparePlayers(ResponseData playerOneData, ResponseData playerTwoData) {
 
-        StringBuilder returnString = new StringBuilder();
+        EmbedBuilder embedBuilder = new EmbedBuilder();
 
-        returnString.append(resourceBundle.getString("compare.title").replace("%s", playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname()).replace("%t",playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname())).append("\n\n");
-        returnString.append(resourceBundle.getString("stats.kills") + getWinner(playerOneData, playerTwoData, "total_kills", true)).append("\n");;
-        returnString.append(resourceBundle.getString("stats.deaths") + getWinner(playerOneData, playerTwoData, "total_deaths", false)).append("\n");;
-        returnString.append(resourceBundle.getString("stats.planted") +getWinner(playerOneData, playerTwoData, "total_planted_bombs", true)).append("\n");;
-        returnString.append(resourceBundle.getString("stats.defused") + getWinner(playerOneData, playerTwoData, "total_defused_bombs", true)).append("\n");;
-        returnString.append(resourceBundle.getString("stats.wins") + getWinner(playerOneData, playerTwoData, "total_wins", true)).append("\n");;
-        returnString.append(resourceBundle.getString("stats.damage") + getWinner(playerOneData, playerTwoData, "total_damage_done", true)).append("\n");;
+        embedBuilder.setTitle(resourceBundle.getString("compare.title").replace("%s", playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname()).replace("%t",playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname()))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.kills"), getWinner(playerOneData, playerTwoData, "total_kills", true), true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.deaths"),getWinner(playerOneData, playerTwoData, "total_deaths", false),true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.wins"),getWinner(playerOneData, playerTwoData, "total_wins", true),true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.planted"),getWinner(playerOneData, playerTwoData, "total_planted_bombs", true),true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.defused"),getWinner(playerOneData, playerTwoData, "total_defused_bombs", true),true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.damage"),getWinner(playerOneData, playerTwoData, "total_damage_done", true),true));
 
-        return returnString.toString();
+        return embedBuilder;
     }
 
     private String getWinner(ResponseData playerOneData, ResponseData playerTwoData, String statName, boolean higherRequired) {
@@ -78,21 +79,17 @@ public class CsStatsService {
 
         if(higherRequired) {
             if(playerOneLong > playerTwoLong) {
-                return "** :star: " + playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerOneLong + ") ** vs "
-                        + playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerTwoLong + ")";
+                return "** :star: " + playerOneLong + " ** vs " + playerTwoLong;
             } else if(playerTwoLong > playerOneLong) {
-                return "** :star: " + playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerTwoLong + ") ** vs "
-                        + playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerOneLong + ")";
+                return playerOneLong + " vs ** " + playerTwoLong + " ** :star: ";
             } else {
                 return resourceBundle.getString("compare.equal").replace("%s", String.valueOf(playerOneLong));
             }
         } else {
             if(playerOneLong < playerTwoLong) {
-                return "** :star: " + playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerOneLong + ") ** vs "
-                        + playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerTwoLong  + ")";
+                return "** :star: " + playerOneLong + " ** vs " + playerTwoLong;
             } else if(playerTwoLong < playerOneLong) {
-                return "** :star: " + playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerTwoLong + ") ** vs "
-                        + playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname() + " (" + playerOneLong  + ")";
+                return playerOneLong + " vs ** " + playerTwoLong + " ** :star: ";
             } else {
                 return resourceBundle.getString("compare.equal").replace("%s", String.valueOf(playerOneLong));
             }

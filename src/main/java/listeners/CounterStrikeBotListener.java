@@ -34,7 +34,7 @@ public class CounterStrikeBotListener extends ListenerAdapter {
 
         if ("compare".equals(event.getName())) {
             event.deferReply().queue();
-            event.getHook().sendMessage(csStatsService.handleCompareEvent(event, locale)).queue();
+            event.getHook().sendMessageEmbeds(csStatsService.handleCompareEvent(event, locale).build()).queue();
         }
 
         if ("map".equals(event.getName())) {
