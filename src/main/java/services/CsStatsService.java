@@ -22,6 +22,10 @@ public class CsStatsService {
     private Properties properties;
     ResourceBundle resourceBundle;
 
+    //I know. I don't like it either.
+    private int winsOne;
+    private int winsTwo;
+
     public CsStatsService(Properties properties) {
         this.properties = properties;
     }
@@ -60,14 +64,23 @@ public class CsStatsService {
     private EmbedBuilder comparePlayers(ResponseData playerOneData, ResponseData playerTwoData) {
 
         EmbedBuilder embedBuilder = new EmbedBuilder();
+        winsOne = 0;
+        winsTwo = 0;
 
         embedBuilder.setTitle(resourceBundle.getString("compare.title").replace("%s", playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname()).replace("%t",playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname()))
+                .setAuthor(resourceBundle.getString("stats.author"), "https://www.yoinc.ch")
                 .addField(new MessageEmbed.Field(resourceBundle.getString("stats.kills"), getWinner(playerOneData, playerTwoData, "total_kills", true), true))
                 .addField(new MessageEmbed.Field(resourceBundle.getString("stats.deaths"),getWinner(playerOneData, playerTwoData, "total_deaths", false),true))
                 .addField(new MessageEmbed.Field(resourceBundle.getString("stats.wins"),getWinner(playerOneData, playerTwoData, "total_wins", true),true))
                 .addField(new MessageEmbed.Field(resourceBundle.getString("stats.planted"),getWinner(playerOneData, playerTwoData, "total_planted_bombs", true),true))
                 .addField(new MessageEmbed.Field(resourceBundle.getString("stats.defused"),getWinner(playerOneData, playerTwoData, "total_defused_bombs", true),true))
                 .addField(new MessageEmbed.Field(resourceBundle.getString("stats.damage"),getWinner(playerOneData, playerTwoData, "total_damage_done", true),true));
+
+        if(winsOne > winsTwo) {
+            embedBuilder.setImage(playerOneData.getSteamUserInfo().getPlayers().get(0).getAvatarmedium());
+        } else if(winsTwo > winsOne) {
+            embedBuilder.setImage(playerTwoData.getSteamUserInfo().getPlayers().get(0).getAvatarmedium());
+        }
 
         return embedBuilder;
     }
@@ -79,16 +92,20 @@ public class CsStatsService {
 
         if(higherRequired) {
             if(playerOneLong > playerTwoLong) {
+                winsOne++;
                 return "** :star: " + playerOneLong + " ** vs " + playerTwoLong;
             } else if(playerTwoLong > playerOneLong) {
+                winsTwo++;
                 return playerOneLong + " vs ** " + playerTwoLong + " ** :star: ";
             } else {
                 return resourceBundle.getString("compare.equal").replace("%s", String.valueOf(playerOneLong));
             }
         } else {
             if(playerOneLong < playerTwoLong) {
+                winsOne++;
                 return "** :star: " + playerOneLong + " ** vs " + playerTwoLong;
             } else if(playerTwoLong < playerOneLong) {
+                winsTwo++;
                 return playerOneLong + " vs ** " + playerTwoLong + " ** :star: ";
             } else {
                 return resourceBundle.getString("compare.equal").replace("%s", String.valueOf(playerOneLong));

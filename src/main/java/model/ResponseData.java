@@ -32,6 +32,7 @@ public class ResponseData {
 
         return new EmbedBuilder()
                 .setTitle(resourceBundle.getString("stats.title").replace("%s", getSteamUserInfo().getPlayers().get(0).getPersonaname()))
+                .setAuthor(resourceBundle.getString("stats.author"), "https://www.yoinc.ch")
                 .setImage(getSteamUserInfo().getPlayers().get(0).getAvatarmedium())
                 .addField(new MessageEmbed.Field(resourceBundle.getString("stats.kills"), String.valueOf(getLongStatsForName("total_kills")), true))
                 .addField(new MessageEmbed.Field(resourceBundle.getString("stats.deaths"),String.valueOf(getLongStatsForName("total_deaths")),true))
