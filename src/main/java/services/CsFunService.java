@@ -1,6 +1,7 @@
 package services;
 
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
 
@@ -48,8 +49,17 @@ public class CsFunService {
         if(dedicatedChannel.equals(event.getMessageChannel().getId())) {
             return originalMessage;
         } else {
-            event.getHook().getInteraction().getGuild().getTextChannelById(dedicatedChannel).sendMessage(originalMessage).queue();
-            return resourceBundle.getString("wow.messageSent");
+            TextChannel dedicatedTextChannel = event.getHook().getInteraction().getGuild().getTextChannelById(dedicatedChannel);
+
+            //this means no dedicated channel was found for this ID. either no dedicated channel was set or it doesn't exist on this server.
+            //either way, this means that the event is going to be returned in the current active channel. that's a bit messy but hey,
+            //if that's what they want..?
+            if(dedicatedTextChannel == null) {
+                return originalMessage;
+            } else {
+                dedicatedTextChannel.sendMessage(originalMessage).queue();
+                return resourceBundle.getString("wow.messageSent");
+            }
         }
     }
 
