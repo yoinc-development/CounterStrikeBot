@@ -44,7 +44,7 @@ public class SteamUser {
     }
 
     public String getPersonaname() {
-        return personaname.replaceAll("`","");
+        return personaname.replaceAll("`","'");
     }
 
     public void setPersonaname(String personaname) {
