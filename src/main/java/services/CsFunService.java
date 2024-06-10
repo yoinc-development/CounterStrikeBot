@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
 
+import java.sql.SQLException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,13 +13,14 @@ import java.util.regex.Pattern;
 public class CsFunService {
 
     private Properties properties;
+    private DataService dataService;
     ResourceBundle resourceBundle;
 
     Map<String, String> wowList;
 
     public CsFunService(Properties properties) {
         this.properties = properties;
-        wowList = new HashMap<String, String>();
+        setupWowList();
         wowList.put("jay_th", "https://cdn.discordapp.com/attachments/449281855175393280/1221510017354563674/loud.mov");
         wowList.put("vi24ra", "https://cdn.discordapp.com/attachments/288367861515419649/1167948820525621248/Dropshot.mp4");
         wowList.put("aatha", "https://cdn.discordapp.com/attachments/844510835241910303/1225082807110336653/Me_Is_Sorry_Janes.mp4");
@@ -42,6 +44,17 @@ public class CsFunService {
             } else {
                 return sendMessageInCorrectChannel(event, dedicatedChannel, resourceBundle.getString("error.hasnowow"));
             }
+        }
+    }
+
+    private void setupWowList() {
+        wowList = new HashMap<String, String>();
+        try {
+            dataService = new DataService();
+            dataService.setupConnection();
+            wowList = dataService.returnAllWowEntries();
+        } catch (SQLException exception) {
+            System.out.println("Exception thrown.");
         }
     }
 
