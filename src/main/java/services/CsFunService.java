@@ -21,9 +21,6 @@ public class CsFunService {
     public CsFunService(Properties properties) {
         this.properties = properties;
         setupWowList();
-        wowList.put("jay_th", "https://cdn.discordapp.com/attachments/449281855175393280/1221510017354563674/loud.mov");
-        wowList.put("vi24ra", "https://cdn.discordapp.com/attachments/288367861515419649/1167948820525621248/Dropshot.mp4");
-        wowList.put("aatha", "https://cdn.discordapp.com/attachments/844510835241910303/1225082807110336653/Me_Is_Sorry_Janes.mp4");
     }
 
     public String handleWowEvent(UserContextInteractionEvent event, String locale) {
@@ -33,24 +30,20 @@ public class CsFunService {
         resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
         String targetUserName = targetUser.getName();
 
-        if("CSBot".equals(targetUserName)) {
-            //teehee.
-            return sendMessageInCorrectChannel(event,dedicatedChannel, "https://www.youtube.com/watch?v=2qTHmSyqrok");
+        if(wowList.containsKey(targetUserName)) {
+            String message = resourceBundle.getString("wow.highlightMessage").replace("%s", targetUserName) + " " + wowList.get(targetUserName);
+            return sendMessageInCorrectChannel(event, dedicatedChannel, message);
         } else if(targetUser.isBot()) {
             return sendMessageInCorrectChannel(event, dedicatedChannel, resourceBundle.getString("error.cantwowabot"));
         } else {
-            if(wowList.containsKey(targetUserName)) {
-                return sendMessageInCorrectChannel(event, dedicatedChannel, wowList.get(targetUserName));
-            } else {
-                return sendMessageInCorrectChannel(event, dedicatedChannel, resourceBundle.getString("error.hasnowow"));
-            }
+            return sendMessageInCorrectChannel(event, dedicatedChannel, resourceBundle.getString("error.hasnowow"));
         }
     }
 
     private void setupWowList() {
         wowList = new HashMap<String, String>();
         try {
-            dataService = new DataService();
+            dataService = new DataService(properties);
             dataService.setupConnection();
             wowList = dataService.returnAllWowEntries();
         } catch (SQLException exception) {
@@ -58,9 +51,9 @@ public class CsFunService {
         }
     }
 
-    private String sendMessageInCorrectChannel(GenericCommandInteractionEvent event, String dedicatedChannel, String originalMessage) {
+    private String sendMessageInCorrectChannel(GenericCommandInteractionEvent event, String dedicatedChannel, String message) {
         if(dedicatedChannel.equals(event.getMessageChannel().getId())) {
-            return originalMessage;
+            return message;
         } else {
             TextChannel dedicatedTextChannel = event.getHook().getInteraction().getGuild().getTextChannelById(dedicatedChannel);
 
@@ -68,9 +61,9 @@ public class CsFunService {
             //either way, this means that the event is going to be returned in the current active channel. that's a bit messy but hey,
             //if that's what they want..?
             if(dedicatedTextChannel == null) {
-                return originalMessage;
+                return message;
             } else {
-                dedicatedTextChannel.sendMessage(originalMessage).queue();
+                dedicatedTextChannel.sendMessage(message).queue();
                 return resourceBundle.getString("wow.messageSent");
             }
         }
@@ -89,11 +82,16 @@ public class CsFunService {
         Matcher ytMatcher = ytPattern.matcher(url);
         Matcher dMatcher = dPattern.matcher(url);
 
-        if(ytMatcher.find() || dMatcher.find()) {
-            wowList.put(user, url);
-            return resourceBundle.getString("wow.done");
-        } else {
-            return resourceBundle.getString("error.invalidwow");
+        try {
+            if (ytMatcher.find() || dMatcher.find()) {
+                dataService.addWowEvent(user, url);
+                wowList.put(user, url);
+                return resourceBundle.getString("wow.done");
+            } else {
+                return resourceBundle.getString("error.invalidwow");
+            }
+        } catch (SQLException ex) {
+            return resourceBundle.getString("error.majorerror");
         }
     }
 }
