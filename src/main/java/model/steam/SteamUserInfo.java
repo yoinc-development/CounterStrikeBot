@@ -1,4 +1,4 @@
-package model;
+package model.steam;
 
 import java.util.List;
 

@@ -2,12 +2,10 @@ import listeners.CounterStrikeBotListener;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.events.GenericEvent;
-import net.dv8tion.jda.api.events.session.ReadyEvent;
-import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import services.FaceitMatchService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,12 +15,19 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
-public class StartUp implements EventListener {
+import static spark.Spark.get;
+import static spark.Spark.port;
 
-    private final DateTimeFormatter START_TIME = DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss");
+public class StartUp {
+
+    private static final DateTimeFormatter START_TIME = DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss");
 
     public static void main(String[] args) {
         try {
+
+            String startMessage = LocalDateTime.now().format(START_TIME) + " - Started application.";
+            System.out.println(startMessage);
+
             InputStream inputStream = StartUp.class.getClassLoader().getResourceAsStream("config.properties");
             Properties properties = new Properties();
             properties.load(inputStream);
@@ -31,9 +36,9 @@ public class StartUp implements EventListener {
             //FYI: Locale.getDefault() returns locale of OS
             ResourceBundle resourceBundle = ResourceBundle.getBundle("localization", new Locale("en"));
 
+            FaceitMatchService faceitMatchService = new FaceitMatchService(properties);
 
             JDA jda = JDABuilder.createDefault(properties.getProperty("discord.apiToken"))
-                    .addEventListeners(new StartUp())
                     .addEventListeners(new CounterStrikeBotListener(properties))
                     .build();
 
@@ -45,18 +50,18 @@ public class StartUp implements EventListener {
                     Commands.slash("wow", resourceBundle.getString("command.wow.description")).addOption(OptionType.STRING, "url", resourceBundle.getString("command.wow.value.description"), true),
                     Commands.context(Command.Type.USER, "wow")).queue();
             jda.awaitReady();
+
+            //TODO add port according to external service
+            port(0);
+            get("/data", (request, response) -> {
+                faceitMatchService.receiveMatchUpdate(request);
+                return null;
+            });
+
         } catch (InterruptedException ex) {
             System.out.println("Nice. Something interrupted the connection.");
         } catch (IOException ex) {
             System.out.println("Nice. Problems with that property.");
-        }
-    }
-
-    @Override
-    public void onEvent(GenericEvent genericEvent) {
-        if (genericEvent instanceof ReadyEvent) {
-            String startMessage = LocalDateTime.now().format(START_TIME) + " - Started application.";
-            System.out.println(startMessage);
         }
     }
 }

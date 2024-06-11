@@ -1,4 +1,4 @@
-package model;
+package model.steam;
 
 import com.google.gson.annotations.SerializedName;
 import net.dv8tion.jda.api.EmbedBuilder;
