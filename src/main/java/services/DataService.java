@@ -16,12 +16,17 @@ public class DataService {
     }
 
     public void setupConnection() throws SQLException {
-        String query = "CREATE TABLE IF NOT EXISTS wow (wow_id int PRIMARY KEY AUTO_INCREMENT, username varchar(50) NOT NULL, url varchar(200) NOT NULL)";
+        String query = "CREATE TABLE IF NOT EXISTS wow (wow_id int PRIMARY KEY AUTO_INCREMENT, username varchar(50) NOT NULL UNIQUE, url varchar(200) NOT NULL)";
         statement.execute(query);
     }
 
     public void addWowEvent(String username, String url) throws SQLException {
         String query = "INSERT INTO wow(username, url) VALUES('" + username + "', '" + url + "');";
+        statement.execute(query);
+    }
+
+    public void updateWowEvent(String username, String url) throws SQLException {
+        String query = "UPDATE wow SET url = '" + url + "' WHERE username = '" + username + "';";
         statement.execute(query);
     }
 

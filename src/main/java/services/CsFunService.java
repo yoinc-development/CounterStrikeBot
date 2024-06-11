@@ -84,7 +84,11 @@ public class CsFunService {
 
         try {
             if (ytMatcher.find() || dMatcher.find()) {
-                dataService.addWowEvent(user, url);
+                if(wowList.containsKey(user)) {
+                    dataService.updateWowEvent(user, url);
+                } else {
+                    dataService.addWowEvent(user, url);
+                }
                 wowList.put(user, url);
                 return resourceBundle.getString("wow.done");
             } else {
