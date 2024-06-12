@@ -46,6 +46,11 @@ public class CounterStrikeBotListener extends ListenerAdapter {
             event.deferReply().queue();
             event.getHook().sendMessage(csFunService.handleAddWowEvent(event, locale)).queue();
         }
+
+        if("teams".equals(event.getName())) {
+            event.deferReply().queue();
+            event.getHook().sendMessageEmbeds(csFunService.handleSetTeamsEvent(event, locale).build()).queue();
+        }
     }
 
     @Override

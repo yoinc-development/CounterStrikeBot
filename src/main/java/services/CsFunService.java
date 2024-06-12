@@ -1,8 +1,12 @@
 package services;
 
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
 
 import java.sql.SQLException;
@@ -16,28 +20,44 @@ public class CsFunService {
     private DataService dataService;
     ResourceBundle resourceBundle;
 
+    String dedicatedChannel;
     Map<String, String> wowList;
 
     public CsFunService(Properties properties) {
+        dedicatedChannel = properties.getProperty("discord.dedicatedChannel");
         this.properties = properties;
         setupWowList();
     }
 
     public String handleWowEvent(UserContextInteractionEvent event, String locale) {
 
-        String dedicatedChannel = properties.getProperty("discord.dedicatedChannel");
         User targetUser = event.getTarget();
         resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
         String targetUserName = targetUser.getName();
 
         if(wowList.containsKey(targetUserName)) {
             String message = resourceBundle.getString("wow.highlightMessage").replace("%s", targetUserName) + " " + wowList.get(targetUserName);
-            return sendMessageInCorrectChannel(event, dedicatedChannel, message);
+            return sendMessageInCorrectChannel(event, message);
         } else if(targetUser.isBot()) {
-            return sendMessageInCorrectChannel(event, dedicatedChannel, resourceBundle.getString("error.cantwowabot"));
+            return sendMessageInCorrectChannel(event, resourceBundle.getString("error.cantwowabot"));
         } else {
-            return sendMessageInCorrectChannel(event, dedicatedChannel, resourceBundle.getString("error.hasnowow"));
+            return sendMessageInCorrectChannel(event, resourceBundle.getString("error.hasnowow"));
         }
+    }
+
+    public EmbedBuilder handleSetTeamsEvent(SlashCommandInteractionEvent event, String locale) {
+
+        //requester
+        User user = event.getUser();
+
+        VoiceChannel channel = event.getGuild().getVoiceChannelById(properties.getProperty("discord.dedicatedVoiceChannel"));
+
+        for(Member member : channel.getMembers()) {
+            if(member.getUser().equals(user)) {
+                return sendEmbedMessageInCorrectChannel(event, "worked");
+            }
+        }
+        return sendEmbedMessageInCorrectChannel(event, "didnt");
     }
 
     private void setupWowList() {
@@ -51,8 +71,13 @@ public class CsFunService {
         }
     }
 
-    private String sendMessageInCorrectChannel(GenericCommandInteractionEvent event, String dedicatedChannel, String message) {
-        if(dedicatedChannel.equals(event.getMessageChannel().getId())) {
+    private EmbedBuilder sendEmbedMessageInCorrectChannel(GenericCommandInteractionEvent event, String message) {
+
+        return null;
+    }
+
+    private String sendMessageInCorrectChannel(GenericCommandInteractionEvent event, String message) {
+        if(event.getMessageChannel().getId().equals(dedicatedChannel)) {
             return message;
         } else {
             TextChannel dedicatedTextChannel = event.getHook().getInteraction().getGuild().getTextChannelById(dedicatedChannel);
