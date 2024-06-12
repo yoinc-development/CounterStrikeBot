@@ -46,18 +46,15 @@ public class CsFunService {
     }
 
     public EmbedBuilder handleSetTeamsEvent(SlashCommandInteractionEvent event, String locale) {
-
-        //requester
-        User user = event.getUser();
-
         VoiceChannel channel = event.getGuild().getVoiceChannelById(properties.getProperty("discord.dedicatedVoiceChannel"));
-
+        List<Member> toShuffleList = channel.getMembers();
         for(Member member : channel.getMembers()) {
-            if(member.getUser().equals(user)) {
-                return sendEmbedMessageInCorrectChannel(event, "worked");
+            if(member.getUser().equals(event.getUser()) && channel.getMembers().size() >= 2) {
+                Collections.shuffle(toShuffleList);
+                return sendEmbedMessageInCorrectChannel(event, toShuffleList);
             }
         }
-        return sendEmbedMessageInCorrectChannel(event, "didnt");
+        return sendEmbedMessageInCorrectChannel(event, null);
     }
 
     private void setupWowList() {
@@ -71,9 +68,18 @@ public class CsFunService {
         }
     }
 
-    private EmbedBuilder sendEmbedMessageInCorrectChannel(GenericCommandInteractionEvent event, String message) {
+    private EmbedBuilder sendEmbedMessageInCorrectChannel(GenericCommandInteractionEvent event, List<Member> voiceChatMembers) {
 
-        return null;
+        EmbedBuilder embedBuilder = new EmbedBuilder();
+
+        /*
+        embedBuilder.setTitle(resourceBundle.getString("teams.title"))
+                .setAuthor(resourceBundle.getString("stats.author"), "https://www.yoinc.ch")
+                .addField(new MessageEmbed.Field("Team A", getWinner(playerOneData, playerTwoData, "total_kills", true), true))
+                .addField(new MessageEmbed.Field("Team B",getWinner(playerOneData, playerTwoData, "total_deaths", false),true));
+*/
+
+        return embedBuilder;
     }
 
     private String sendMessageInCorrectChannel(GenericCommandInteractionEvent event, String message) {
