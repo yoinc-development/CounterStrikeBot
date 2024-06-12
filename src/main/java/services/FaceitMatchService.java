@@ -14,7 +14,14 @@ public class FaceitMatchService {
     }
 
     public void receiveMatchUpdate(Request request) {
+        System.out.println("Attributes:");
+        for(String string : request.attributes()) {
+            System.out.println(string);
+        }
+        System.out.println("-------");
+        System.out.println("Body:");
         System.out.println(request.body());
+        System.out.println("-------");
     }
 
     public void handleFaceitMatchUpdateEvent() {
