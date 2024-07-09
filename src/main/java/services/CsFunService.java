@@ -34,7 +34,6 @@ public class CsFunService {
     }
 
     public String handleWowEvent(UserContextInteractionEvent event, String locale) {
-
         User targetUser = event.getTarget();
         resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
         String targetUserName = targetUser.getName();
@@ -50,15 +49,19 @@ public class CsFunService {
     }
 
     public EmbedBuilder handleSetTeamsEvent(SlashCommandInteractionEvent event, String locale) {
-        VoiceChannel channel = event.getGuild().getVoiceChannelById(properties.getProperty("discord.dedicatedVoiceChannel"));
-        List<Member> toShuffleList = new LinkedList<Member>();
+        String voiceChannelId = properties.getProperty("discord.dedicatedVoiceChannel");
+        if (StringUtils.isNotEmpty(voiceChannelId)) {
+            VoiceChannel channel = event.getGuild().getVoiceChannelById(voiceChannelId);
+            List<Member> toShuffleList = new LinkedList<Member>();
 
-        if(channel.getMembers().contains(event.getMember()) && channel.getMembers().size() >= 2) {
-            toShuffleList.addAll(channel.getMembers());
-            Collections.shuffle(toShuffleList);
-            return sendEmbedMessageInCorrectChannel(event, toShuffleList, locale);
+            if (channel.getMembers().contains(event.getMember()) && channel.getMembers().size() >= 2) {
+                toShuffleList.addAll(channel.getMembers());
+                Collections.shuffle(toShuffleList);
+                return sendEmbedMessageInCorrectChannel(event, toShuffleList, locale, true);
+            }
+            return sendEmbedMessageInCorrectChannel(event, null, locale, true);
         }
-        return sendEmbedMessageInCorrectChannel(event, null, locale);
+        return sendEmbedMessageInCorrectChannel(event, null, locale, false);
     }
 
     private void setupWowList() {
@@ -72,25 +75,27 @@ public class CsFunService {
         }
     }
 
-    private EmbedBuilder sendEmbedMessageInCorrectChannel(GenericCommandInteractionEvent event, List<Member> voiceChatMembers, String locale) {
-
-        EmbedBuilder embedBuilder = new EmbedBuilder();
+    private EmbedBuilder sendEmbedMessageInCorrectChannel(GenericCommandInteractionEvent event, List<Member> voiceChatMembers, String locale, boolean isInCorrectVC) {
+        resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
         String[] teams;
 
-        resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
-
+        EmbedBuilder embedBuilder = new EmbedBuilder();
         embedBuilder.setTitle(resourceBundle.getString("teams.title"))
                 .setAuthor(resourceBundle.getString("stats.author"), "https://www.yoinc.ch");
 
-        if(CollectionUtils.isEmpty(voiceChatMembers)) {
-            embedBuilder.setTitle(resourceBundle.getString("error.noteamcreation"));
+        if (CollectionUtils.isEmpty(voiceChatMembers)) {
+            if (isInCorrectVC) {
+                embedBuilder.setTitle(resourceBundle.getString("error.noteamcreation"));
+            } else {
+                embedBuilder.setTitle(resourceBundle.getString("error.notincorrectvc"));
+            }
         } else {
-            if(event.getOption("amountofteams") == null) {
+            if (event.getOption("amountofteams") == null) {
                 teams = partitionTeams(voiceChatMembers, 2);
                 for (int i = 0; i < teams.length; i++) {
                     embedBuilder.addField(new MessageEmbed.Field("Team " + (i + 1), teams[i], true));
                 }
-            } else if(event.getOption("amountofteams").getAsInt() == 0 || event.getOption("amountofteams").getAsInt() == 1) {
+            } else if (event.getOption("amountofteams").getAsInt() == 0 || event.getOption("amountofteams").getAsInt() == 1) {
                 embedBuilder.setTitle(resourceBundle.getString("error.noteamcreation"));
             } else {
                 teams = partitionTeams(voiceChatMembers, event.getOption("amountofteams").getAsInt());
@@ -107,26 +112,23 @@ public class CsFunService {
 
         int teamSize = Math.round(voiceChatMember.size() / amoutOfTeams);
         List<List<Member>> partitionedList = Lists.partition(voiceChatMember, teamSize);
-
-            for (int i = 0; i < partitionedList.size(); i++) {
-                result[i] = returnStringOfMembers(partitionedList.get(i));
-            }
+        for (int i = 0; i < partitionedList.size(); i++) {
+            result[i] = returnStringOfMembers(partitionedList.get(i));
+        }
         return result;
     }
 
     private String returnStringOfMembers(List<Member> partitionedVoiceChatMembers) {
-
         StringBuilder builder = new StringBuilder();
 
         for (Member member : partitionedVoiceChatMembers) {
             builder.append(member.getUser().getName() + "\n");
         }
-
         return builder.toString();
     }
 
     private String sendMessageInCorrectChannel(GenericCommandInteractionEvent event, String message) {
-        if(StringUtils.isNotEmpty(dedicatedChannel)) {
+        if (StringUtils.isNotEmpty(dedicatedChannel)) {
             if (event.getMessageChannel().getId().equals(dedicatedChannel)) {
                 return message;
             } else {
