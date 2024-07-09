@@ -29,6 +29,10 @@ public class RetakeService {
 
     public String handleMapEvent(SlashCommandInteractionEvent event, String locale) {
         resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
+
+        return resourceBundle.getString("error.mapsdisabled");
+
+        /*
         //rcon channel
         //Rcon rcon = new Rcon(serverIp, serverPort, serverPassword.getBytes());
         //list of allowed maps to switch to set in properties
@@ -62,5 +66,6 @@ public class RetakeService {
         } else {
             return "Du darfst leider keine Maps wechseln. :(";
         }
+         */
     }
 }
