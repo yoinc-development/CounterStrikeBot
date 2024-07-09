@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionE
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
 import org.apache.commons.collections4.CollectionUtils;
+import org.codehaus.plexus.util.StringUtils;
 
 import java.sql.SQLException;
 import java.util.*;
@@ -125,20 +126,20 @@ public class CsFunService {
     }
 
     private String sendMessageInCorrectChannel(GenericCommandInteractionEvent event, String message) {
-        if (event.getMessageChannel().getId().equals(dedicatedChannel)) {
-            return message;
-        } else {
-            TextChannel dedicatedTextChannel = event.getHook().getInteraction().getGuild().getTextChannelById(dedicatedChannel);
-
-            //this means no dedicated channel was found for this ID. either no dedicated channel was set or it doesn't exist on this server.
-            //either way, this means that the event is going to be returned in the current active channel. that's a bit messy but hey,
-            //if that's what they want..?
-            if (dedicatedTextChannel == null) {
+        if(StringUtils.isNotEmpty(dedicatedChannel)) {
+            if (event.getMessageChannel().getId().equals(dedicatedChannel)) {
                 return message;
             } else {
-                dedicatedTextChannel.sendMessage(message).queue();
-                return resourceBundle.getString("wow.messageSent");
+                TextChannel dedicatedTextChannel = event.getHook().getInteraction().getGuild().getTextChannelById(dedicatedChannel);
+                if (dedicatedTextChannel == null) {
+                    return message;
+                } else {
+                    dedicatedTextChannel.sendMessage(message).queue();
+                    return resourceBundle.getString("wow.messageSent");
+                }
             }
+        } else {
+            return message;
         }
     }
 
