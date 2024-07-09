@@ -48,7 +48,7 @@ public class StartUp {
                     Commands.slash("stats", resourceBundle.getString("command.stats.description")).addOption(OptionType.STRING,"player",resourceBundle.getString("command.stats.value.description"), true),
                     Commands.slash("compare", resourceBundle.getString("command.compare.description")).addOption(OptionType.STRING, "playerone", resourceBundle.getString("command.compare.valueone.description"), true).addOption(OptionType.STRING, "playertwo", resourceBundle.getString("command.compare.valuetwo.description"), true),
                     Commands.slash("wow", resourceBundle.getString("command.wow.description")).addOption(OptionType.STRING, "url", resourceBundle.getString("command.wow.value.description"), true),
-                    Commands.slash("teams", "description"),
+                    Commands.slash("teams", resourceBundle.getString("command.teams.description")).addOption(OptionType.NUMBER, "amountofteams", resourceBundle.getString("command.teams.value.description"), false),
                     Commands.context(Command.Type.USER, "wow")).queue();
             jda.awaitReady();
 

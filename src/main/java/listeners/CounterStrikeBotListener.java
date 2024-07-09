@@ -72,7 +72,7 @@ public class CounterStrikeBotListener extends ListenerAdapter {
 
     }
 
-    private String getUserLocale(GenericCommandInteractionEvent event) {
+    protected String getUserLocale(GenericCommandInteractionEvent event) {
         String locale = "en";
         if(event.getInteraction().getUserLocale().getLocale().equals("de")) {
             locale = "de";
