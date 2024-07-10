@@ -2,9 +2,8 @@
 
 [![GitHub release](https://img.shields.io/github/v/release/janesth/CounterStrikeBot)](https://github.com/janesth/CounterStrikeBot)
 
-
 The purpose of this bot is to inform users of a Discord server in a specific channel about played matches.  
-Continuing from its original purpose, it also allows a specific user group to execute "rcon changelevel <map_name>" to change the level on a to be specified retake server. 
+Continuing from its original purpose, it also allows a specific user group to execute "rcon changelevel <map_name>" to change the level on a retake server. 
 
 ## Configuration
 
@@ -32,7 +31,7 @@ The next properties were relevant for a scratched commendation system:
 - `server.ftp.user` - the FTP user (access has to be granted outside of this application)
 - `server.ftp.password` - the FTP password
 
-The last property is revelant regarding the bot's wow feature:
+The last property is relevant regarding the bot's wow feature:
 - **`db.url` - the URL of a database for the bot to store all submitted wow clips**
 
 ## Run the bot
