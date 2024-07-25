@@ -10,8 +10,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
-import org.apache.commons.collections4.CollectionUtils;
-import org.codehaus.plexus.util.StringUtils;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 
 import java.sql.SQLException;
 import java.util.*;
@@ -19,18 +18,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CsFunService {
-
-    private Properties properties;
-    private DataService dataService;
+    DataService dataService;
+    MessageService messageService;
     ResourceBundle resourceBundle;
-
-    String dedicatedChannel;
     Map<String, String> wowList;
 
     public CsFunService(Properties properties, DataService dataService) {
-        dedicatedChannel = properties.getProperty("discord.dedicatedChannel");
-        this.properties = properties;
         this.dataService = dataService;
+        messageService = new MessageService(properties);
         setupWowList();
     }
 
@@ -41,28 +36,41 @@ public class CsFunService {
 
         if (wowList.containsKey(targetUserName)) {
             String message = resourceBundle.getString("wow.highlightMessage").replace("%s", targetUserName) + " " + wowList.get(targetUserName);
-            return sendMessageInCorrectChannel(event, message);
+            return messageService.sendMessageInCorrectChannel(event, message);
         } else if (targetUser.isBot()) {
-            return sendMessageInCorrectChannel(event, resourceBundle.getString("error.cantwowabot"));
+            return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.cantwowabot"));
         } else {
-            return sendMessageInCorrectChannel(event, resourceBundle.getString("error.hasnowow"));
+            return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.hasnowow"));
         }
     }
 
     public EmbedBuilder handleSetTeamsEvent(SlashCommandInteractionEvent event, String locale) {
-        String voiceChannelId = properties.getProperty("discord.dedicatedVoiceChannel");
-        if (StringUtils.isNotEmpty(voiceChannelId)) {
-            VoiceChannel channel = event.getGuild().getVoiceChannelById(voiceChannelId);
-            List<Member> toShuffleList = new LinkedList<Member>();
 
-            if (channel.getMembers().contains(event.getMember()) && channel.getMembers().size() >= 2) {
-                toShuffleList.addAll(channel.getMembers());
-                Collections.shuffle(toShuffleList);
-                return sendEmbedMessageInCorrectChannel(event, toShuffleList, locale, true);
+        List<VoiceChannel> allGuildVoiceChannels = event.getGuild().getVoiceChannels();
+        List<Member> toShuffleList = new LinkedList<Member>();
+
+        boolean isInVC = false;
+        VoiceChannel vcToUse = null;
+
+        for(VoiceChannel voiceChannel : allGuildVoiceChannels) {
+            if(voiceChannel.getMembers().contains(event.getMember())) {
+                isInVC = true;
+                vcToUse = voiceChannel;
+                break;
             }
-            return sendEmbedMessageInCorrectChannel(event, null, locale, true);
         }
-        return sendEmbedMessageInCorrectChannel(event, null, locale, false);
+
+        if(isInVC) {
+            if(vcToUse.getMembers().size() >= 2) {
+                toShuffleList.addAll(vcToUse.getMembers());
+                Collections.shuffle(toShuffleList);
+                return messageService.sendEmbedMessageInCorrectChannel(event, partitionTeams(toShuffleList, event.getOption("amountofteams")), locale);
+            } else {
+                return new EmbedBuilder().setTitle(resourceBundle.getString("error.noteamcreation"));
+            }
+        } else {
+            return new EmbedBuilder().setTitle(resourceBundle.getString("error.notincorrectvc"));
+        }
     }
 
     private void setupWowList() {
@@ -74,39 +82,14 @@ public class CsFunService {
         }
     }
 
-    private EmbedBuilder sendEmbedMessageInCorrectChannel(GenericCommandInteractionEvent event, List<Member> voiceChatMembers, String locale, boolean isInCorrectVC) {
-        resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
-        String[] teams;
+    private String[] partitionTeams(List<Member> voiceChatMember, OptionMapping amoutOfTeamsOption) {
 
-        EmbedBuilder embedBuilder = new EmbedBuilder();
-        embedBuilder.setTitle(resourceBundle.getString("teams.title"))
-                .setAuthor(resourceBundle.getString("stats.author"), "https://www.yoinc.ch");
+        int amoutOfTeams = 2;
 
-        if (CollectionUtils.isEmpty(voiceChatMembers)) {
-            if (isInCorrectVC) {
-                embedBuilder.setTitle(resourceBundle.getString("error.noteamcreation"));
-            } else {
-                embedBuilder.setTitle(resourceBundle.getString("error.notincorrectvc"));
-            }
-        } else {
-            if (event.getOption("amountofteams") == null) {
-                teams = partitionTeams(voiceChatMembers, 2);
-                for (int i = 0; i < teams.length; i++) {
-                    embedBuilder.addField(new MessageEmbed.Field("Team " + (i + 1), teams[i], true));
-                }
-            } else if (event.getOption("amountofteams").getAsInt() == 0 || event.getOption("amountofteams").getAsInt() == 1) {
-                embedBuilder.setTitle(resourceBundle.getString("error.noteamcreation"));
-            } else {
-                teams = partitionTeams(voiceChatMembers, event.getOption("amountofteams").getAsInt());
-                for (int i = 0; i < teams.length; i++) {
-                    embedBuilder.addField(new MessageEmbed.Field("Team " + (i + 1), teams[i], true));
-                }
-            }
+        if(amoutOfTeamsOption != null && amoutOfTeamsOption.getAsInt() >= 2) {
+            amoutOfTeams = amoutOfTeamsOption.getAsInt();
         }
-        return embedBuilder;
-    }
 
-    private String[] partitionTeams(List<Member> voiceChatMember, int amoutOfTeams) {
         String[] result = new String[amoutOfTeams];
 
         int teamSize = Math.round(voiceChatMember.size() / amoutOfTeams);
@@ -124,24 +107,6 @@ public class CsFunService {
             builder.append(member.getUser().getName() + "\n");
         }
         return builder.toString();
-    }
-
-    private String sendMessageInCorrectChannel(GenericCommandInteractionEvent event, String message) {
-        if (StringUtils.isNotEmpty(dedicatedChannel)) {
-            if (event.getMessageChannel().getId().equals(dedicatedChannel)) {
-                return message;
-            } else {
-                TextChannel dedicatedTextChannel = event.getHook().getInteraction().getGuild().getTextChannelById(dedicatedChannel);
-                if (dedicatedTextChannel == null) {
-                    return message;
-                } else {
-                    dedicatedTextChannel.sendMessage(message).queue();
-                    return resourceBundle.getString("wow.messageSent");
-                }
-            }
-        } else {
-            return message;
-        }
     }
 
     public String handleAddWowEvent(GenericCommandInteractionEvent event, String locale) {

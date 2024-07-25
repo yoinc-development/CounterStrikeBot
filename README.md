@@ -12,8 +12,7 @@ All of these properties are defined in "config.properties". Mandatory properties
 These properties are relevant to connect to Discord and to limit this bot's functionalities by various factors:
 - **`discord.apiToken` - https://discord.com/developers/applications to receive your individual bot token**
 - `discord.allowedRoleId` - the ID of a user group to use commands
-- `discord.dedicatedChannel` - the ID of a dedicated text channel for the bot to use
-- `discord.dedicatedVoiceChannel` - the ID of a dedicated voice channel for the bot to use
+- `discord.thisIsMyHome` - the ID of the server's home base
 
 These properties are currently relevant for the CS2 stats feature. 
 - **`steam.api` - Steam Web API key**
@@ -40,14 +39,8 @@ TO BE DEFINED
 
 ## F.A.Q.
 
-### Why do I need to run the bot myself? Is there not a public version already running for me to invite to my own server?
-Short answer: there is a public version of the bot, but its wow, map and teams features are tailored to a specific server.
-
-Long answer: allowing access to these properties allows for flexibility in the usage of the bot on individual servers. Some Discord server owners struggle
-with permissions for individual text channels (bot dedicated channels). It can be quite a hassle to have synced permissions across a category 
-containing a different variety of text / voice channels. Setting a dedicated id for both text and voice channel allows the user to set limits within the bot 
-without it relying on permissions of the server. The public version of this bot is currently limited by these dedicated channels for the wow, map and teams features 
-and therefore can not be invited to other servers - the same can not be said for the stats or compare features. These would work regardless of restrictions.
+### Can I run the bot myself? Do I have to invite the public instance of the bot to my server??
+You can invite the bot to your server or run it yourself by changing the properties in config.properties and following the tutorial above the F.A.Q. section.
 
 ### Why doesn't ``/map`` work?
 SourceMod is not compatible with Counter Strike 2.

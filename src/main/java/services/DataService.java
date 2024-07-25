@@ -15,9 +15,9 @@ public class DataService {
     }
 
     private void setupConnection() throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement(
-                "CREATE TABLE IF NOT EXISTS users (user_id INT AUTO_INCREMENT, username VARCHAR(50) NOT NULL UNIQUE, steamID VARCHAR(250) NOT NULL, PRIMARY KEY (user_id));" +
-                "CREATE TABLE IF NOT EXISTS wow (wow_id INT AUTO_INCREMENT, f_user_id INT NOT NULL, url VARCHAR(200) NOT NULL, PRIMARY KEY(wow_id), FOREIGN KEY (f_user_id) REFERENCES users(user_id));");
+        PreparedStatement preparedStatement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS users (user_id INT AUTO_INCREMENT, username VARCHAR(50) NOT NULL UNIQUE, steamID VARCHAR(250) NOT NULL, PRIMARY KEY (user_id));");
+        preparedStatement.executeUpdate();
+        preparedStatement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS wow (wow_id INT AUTO_INCREMENT, f_user_id INT NOT NULL, url VARCHAR(200) NOT NULL, PRIMARY KEY(wow_id), FOREIGN KEY (f_user_id) REFERENCES users(user_id));");
         preparedStatement.executeUpdate();
     }
 
