@@ -1,12 +1,40 @@
-CREATE TABLE IF NOT EXISTS wow (wow_id int PRIMARY KEY AUTO_INCREMENT, username varchar(50) NOT NULL UNIQUE, url varchar(200) NOT NULL);
+CREATE TABLE IF NOT EXISTS users (user_id INT AUTO_INCREMENT, username VARCHAR(50) NOT NULL UNIQUE, steamID VARCHAR(250) NOT NULL, PRIMARY KEY (user_id));
+CREATE TABLE IF NOT EXISTS wow (wow_id INT AUTO_INCREMENT, f_user_id INT NOT NULL, url VARCHAR(200) NOT NULL, PRIMARY KEY(wow_id), FOREIGN KEY (f_user_id) REFERENCES users(user_id));
 
-INSERT INTO wow(username, url)
-VALUES("jay_th", "https://cdn.discordapp.com/attachments/449281855175393280/1221510017354563674/loud.mov");
-INSERT INTO wow(username, url)
-VALUES("vi24ra", "https://cdn.discordapp.com/attachments/288367861515419649/1167948820525621248/Dropshot.mp4");
-INSERT INTO wow(username, url)
-VALUES("aatha", "https://cdn.discordapp.com/attachments/844510835241910303/1225082807110336653/Me_Is_Sorry_Janes.mp4");
-INSERT INTO wow(username, url)
-VALUES("CSBot", "https://www.youtube.com/watch?v=2qTHmSyqrok");
-INSERT INTO wow(username, url)
-VALUES("korunde", "https://www.youtube.com/watch?v=Ygjd-t8btgY");
+INSERT INTO users(username, steamID)
+VALUES("CSBot", "321664337364385792");
+INSERT INTO users(username, steamID)
+VALUES("aatha", "76561198077352267");
+INSERT INTO users(username, steamID)
+VALUES("dase8760", "76561198213130649");
+INSERT INTO users(username, steamID)
+VALUES("vantriko", "76561198316963738");
+INSERT INTO users(username, steamID)
+VALUES("jay_th", "76561198014462666");
+INSERT INTO users(username, steamID)
+VALUES("juan828", "76561198098219020");
+INSERT INTO users(username, steamID)
+VALUES("korunde", "76561198071064798");
+INSERT INTO users(username, steamID)
+VALUES("nbldrifter", "76561198088520949");
+INSERT INTO users(username, steamID)
+VALUES("nassim1234", "76561198203636285");
+INSERT INTO users(username, steamID)
+VALUES("nigglz", "76561198401419666");
+INSERT INTO users(username, steamID)
+VALUES("vi24ra", "76561198071074164");
+INSERT INTO users(username, steamID)
+VALUES("pavi9028", "76561198102224384");
+INSERT INTO users(username, steamID)
+VALUES("sani1991", "76561197984892194");
+
+INSERT INTO wow(f_user_id, url)
+VALUES(5, "https://cdn.discordapp.com/attachments/449281855175393280/1221510017354563674/loud.mov");
+INSERT INTO wow(f_user_id, url)
+VALUES(11, "https://cdn.discordapp.com/attachments/288367861515419649/1167948820525621248/Dropshot.mp4");
+INSERT INTO wow(f_user_id, url)
+VALUES(2, "https://cdn.discordapp.com/attachments/844510835241910303/1225082807110336653/Me_Is_Sorry_Janes.mp4");
+INSERT INTO wow(f_user_id, url)
+VALUES(1, "https://www.youtube.com/watch?v=2qTHmSyqrok");
+INSERT INTO wow(f_user_id, url)
+VALUES(7, "https://www.youtube.com/watch?v=Ygjd-t8btgY");

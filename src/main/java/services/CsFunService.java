@@ -27,9 +27,10 @@ public class CsFunService {
     String dedicatedChannel;
     Map<String, String> wowList;
 
-    public CsFunService(Properties properties) {
+    public CsFunService(Properties properties, DataService dataService) {
         dedicatedChannel = properties.getProperty("discord.dedicatedChannel");
         this.properties = properties;
+        this.dataService = dataService;
         setupWowList();
     }
 
@@ -67,11 +68,9 @@ public class CsFunService {
     private void setupWowList() {
         wowList = new HashMap<String, String>();
         try {
-            dataService = new DataService(properties);
-            dataService.setupConnection();
             wowList = dataService.returnAllWowEntries();
-        } catch (SQLException exception) {
-            System.out.println("Exception thrown.");
+        } catch (SQLException ex) {
+            System.out.println("SQLException thrown: " + ex.getMessage());
         }
     }
 
@@ -171,6 +170,7 @@ public class CsFunService {
                 return resourceBundle.getString("error.invalidwow");
             }
         } catch (SQLException ex) {
+            System.out.println("SQLException thrown: " + ex.getMessage());
             return resourceBundle.getString("error.majorerror");
         }
     }

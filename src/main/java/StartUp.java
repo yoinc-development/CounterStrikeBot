@@ -5,10 +5,12 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import services.DataService;
 import services.FaceitMatchService;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
@@ -37,9 +39,17 @@ public class StartUp {
             ResourceBundle resourceBundle = ResourceBundle.getBundle("localization", new Locale("en"));
 
             FaceitMatchService faceitMatchService = new FaceitMatchService(properties);
+            DataService dataService = null;
+
+            try {
+                dataService = new DataService(properties);
+            } catch (SQLException ex) {
+                System.out.println("SQL Exception thrown: " + ex.getMessage());
+            }
+
 
             JDA jda = JDABuilder.createDefault(properties.getProperty("discord.apiToken"))
-                    .addEventListeners(new CounterStrikeBotListener(properties))
+                    .addEventListeners(new CounterStrikeBotListener(properties, dataService))
                     .build();
 
             jda.getPresence().setActivity(Activity.playing("YOINC.ch"));
@@ -52,16 +62,18 @@ public class StartUp {
                     Commands.context(Command.Type.USER, "wow")).queue();
             jda.awaitReady();
 
+            /*
             port(50429);
             get("/data", (request, response) -> {
                 faceitMatchService.receiveMatchUpdate(request);
                 return null;
             });
+             */
 
         } catch (InterruptedException ex) {
-            System.out.println("Nice. Something interrupted the connection.");
+            System.out.println("InterruptedException thrown: " + ex.getMessage());
         } catch (IOException ex) {
-            System.out.println("Nice. Problems with that property.");
+            System.out.println("IOException thrown: " + ex.getMessage());
         }
     }
 }

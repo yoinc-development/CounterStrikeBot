@@ -9,35 +9,73 @@ public class DataService {
     Connection connection;
     Statement statement;
 
-    public DataService(Properties properties) throws  SQLException {
+    public DataService(Properties properties) throws SQLException {
         this.properties = properties;
         connection = DriverManager.getConnection(properties.getProperty("db.url"));
         statement = connection.createStatement();
+
+        setupConnection();
     }
 
-    public void setupConnection() throws SQLException {
-        String query = "CREATE TABLE IF NOT EXISTS wow (wow_id int PRIMARY KEY AUTO_INCREMENT, username varchar(50) NOT NULL UNIQUE, url varchar(200) NOT NULL)";
-        statement.execute(query);
+    private void setupConnection() throws SQLException {
+        String setupQuery = "CREATE TABLE IF NOT EXISTS users (user_id INT AUTO_INCREMENT, username VARCHAR(50) NOT NULL UNIQUE, steamID VARCHAR(250) NOT NULL, PRIMARY KEY (user_id));";
+        statement.execute(setupQuery);
+
+        setupQuery = "CREATE TABLE IF NOT EXISTS wow (wow_id INT AUTO_INCREMENT, f_user_id INT NOT NULL, url VARCHAR(200) NOT NULL, PRIMARY KEY(wow_id), FOREIGN KEY (f_user_id) REFERENCES users(user_id));";
+        statement.execute(setupQuery);
+    }
+
+    public String getSteamIDForUser(String requestedUser) throws SQLException {
+        String query = "SELECT * FROM users WHERE user = '" + requestedUser + "'";
+        ResultSet resultSet = statement.executeQuery(query);
+
+        while(resultSet.next()) {
+            return resultSet.getString("steamID");
+        }
+        return "";
     }
 
     public void addWowEvent(String username, String url) throws SQLException {
-        String query = "INSERT INTO wow(username, url) VALUES('" + username + "', '" + url + "');";
+        String query = "INSERT INTO wow(f_user_id, url) VALUES('" + getUserIDForUsername(username) + "', '" + url + "');";
         statement.execute(query);
     }
 
     public void updateWowEvent(String username, String url) throws SQLException {
-        String query = "UPDATE wow SET url = '" + url + "' WHERE username = '" + username + "';";
+        String query = "UPDATE wow SET url = '" + url + "' WHERE f_user_id = '" + getUserIDForUsername(username) + "';";
         statement.execute(query);
     }
 
-    public HashMap<String, String> returnAllWowEntries() throws SQLException{
+    public HashMap<String, String> returnAllWowEntries() throws SQLException {
         HashMap<String, String> returnMap = new HashMap<String, String>();
-        String query = "SELECT * FROM wow";
+        String query = "SELECT u.username, w.url FROM wow AS w LEFT JOIN users AS u ON w.f_user_id = u.user_id";
         try (ResultSet resultSet = statement.executeQuery(query)) {
             while(resultSet.next()) {
-                returnMap.put(resultSet.getString("username"), resultSet.getString("url"));
+                returnMap.put(resultSet.getString("u.username"), resultSet.getString("w.url"));
             }
         }
         return returnMap;
+    }
+
+    private int getUserIDForUsername(String username) throws SQLException {
+        String query = "SELECT COUNT(*) FROM users where username = '" + username + "'";
+        ResultSet resultSet = statement.executeQuery(query);
+
+        while (resultSet.next()) {
+            int returnedRows = resultSet.getInt(1);
+            if (returnedRows < 1) {
+                throw new SQLException("More than one user found for the same username.");
+            } else if (returnedRows == 0) {
+                query = "INSERT INTO users VALUES ('" + username + "', '')";
+                statement.execute(query);
+            }
+        }
+
+        query = "SELECT user_id FROM users WHERE username = '" + username + "'";
+        resultSet = statement.executeQuery(query);
+
+        while (resultSet.next()) {
+            return resultSet.getInt(1);
+        }
+        throw new SQLException("No userID can be returned");
     }
 }

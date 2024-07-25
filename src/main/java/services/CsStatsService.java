@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import org.codehaus.plexus.util.StringUtils;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.ResourceBundle;
@@ -20,8 +21,10 @@ public class CsStatsService {
     private int winsOne;
     private int winsTwo;
     ConnectionBuilder connectionBuilder;
+    DataService dataService;
 
-    public CsStatsService(Properties properties) {
+    public CsStatsService(Properties properties, DataService dataService) {
+        this.dataService = dataService;
         connectionBuilder = new ConnectionBuilder(properties);
     }
 
@@ -33,11 +36,17 @@ public class CsStatsService {
             ResponseData responseData = handleGlobalOrNormalUser(requestedUser);
             return responseData.returnBasicInfo(resourceBundle);
         } catch (InterruptedException ex) {
+            System.out.println("InterruptedException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedException"));
         } catch (IOException ex) {
+            System.out.println("IOException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedException"));
         } catch (NullPointerException | JsonSyntaxException ex) {
+            System.out.println("NullPointerException / JSonSyntaxException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.privacySettings").replace("%s", requestedUser));
+        } catch (SQLException ex) {
+            System.out.println("SQLException thrown: " + ex.getMessage());
+            return new EmbedBuilder().setTitle(resourceBundle.getString("error.majorError"));
         }
     }
 
@@ -48,11 +57,17 @@ public class CsStatsService {
             String requestedUserTwo = event.getOption("playertwo").getAsString().toLowerCase();
             return comparePlayers(handleGlobalOrNormalUser(requestedUserOne), handleGlobalOrNormalUser(requestedUserTwo));
         } catch (NullPointerException ex) {
+            System.out.println("NullPointerException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.wrongQueryParameters"));
         } catch (InterruptedException ex) {
+            System.out.println("InterruptedException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedException"));
         } catch (IOException ex) {
+            System.out.println("IOException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedException"));
+        } catch (SQLException ex) {
+            System.out.println("SQLException thrown: " + ex.getMessage());
+            return new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror"));
         }
     }
 
@@ -108,71 +123,20 @@ public class CsStatsService {
         }
     }
 
-    private ResponseData handleGlobalOrNormalUser(String requestedUser) throws NullPointerException, InterruptedException, IOException {
+    private ResponseData handleGlobalOrNormalUser(String requestedUser) throws NullPointerException, InterruptedException, IOException, SQLException {
 
         ResponseData responseData;
 
-        switch (requestedUser) {
-            case "aatha":
-            case "aathavan":
-            case "doge":
-                responseData = connectionBuilder.getUserAndStats("76561198077352267");
-                break;
-            case "dario":
-            case "däse":
-                responseData = connectionBuilder.getUserAndStats("76561198213130649");
-                break;
-            case "janes":
-            case "jay":
-            case "grey":
-                responseData = connectionBuilder.getUserAndStats("76561198014462666");
-                break;
-            case "juan":
-            case "juanita":
-                responseData = connectionBuilder.getUserAndStats("76561198098219020");
-                break;
-            case "korunde":
-            case "koray":
-            case "ossas":
-                responseData = connectionBuilder.getUserAndStats("76561198071064798");
-                break;
-            case "nabil":
-            case "drifter":
-                responseData = connectionBuilder.getUserAndStats("76561198088520949");
-                break;
-            case "nassim":
-                responseData = connectionBuilder.getUserAndStats("76561198203636285");
-                break;
-            case "nici":
-            case "nigglz":
-            case "n'lölec":
-                responseData = connectionBuilder.getUserAndStats("76561198401419666");
-                break;
-            case "ravi":
-            case "vi24":
-                responseData = connectionBuilder.getUserAndStats("76561198071074164");
-                break;
-            case "pavi":
-            case "seraph":
-                responseData = connectionBuilder.getUserAndStats("76561198102224384");
-                break;
-            case "sani":
-            case "baka":
-            case "mugiwarabaka":
-                responseData = connectionBuilder.getUserAndStats("76561197984892194");
-                break;
-            case "vantriko":
-            case "v4ntr1ko":
-            case "enrico":
-                responseData = connectionBuilder.getUserAndStats("76561198316963738");
-                break;
-            default:
-                if(StringUtils.isNumeric(requestedUser)) {
-                    responseData = connectionBuilder.getUserAndStats(requestedUser);
-                } else {
-                    throw new IOException();
-                }
-                break;
+        String steamID = dataService.getSteamIDForUser(requestedUser);
+
+        if(steamID == null || steamID.isEmpty()) {
+            if(StringUtils.isNumeric(requestedUser)) {
+                responseData = connectionBuilder.getUserAndStats(requestedUser);
+            } else {
+                throw new IOException();
+            }
+        } else {
+            responseData = connectionBuilder.getUserAndStats(steamID);
         }
         return responseData;
     }

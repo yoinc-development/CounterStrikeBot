@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEven
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import services.CsFunService;
 import services.CsStatsService;
+import services.DataService;
 import services.RetakeService;
 
 import java.util.Properties;
@@ -16,9 +17,9 @@ public class CounterStrikeBotListener extends ListenerAdapter {
     private RetakeService retakeService;
     private CsFunService csFunService;
 
-    public CounterStrikeBotListener(Properties properties) {
-        csStatsService = new CsStatsService(properties);
-        csFunService = new CsFunService(properties);
+    public CounterStrikeBotListener(Properties properties, DataService dataService) {
+        csStatsService = new CsStatsService(properties, dataService);
+        csFunService = new CsFunService(properties, dataService);
         retakeService = new RetakeService(properties);
     }
 
@@ -78,21 +79,5 @@ public class CounterStrikeBotListener extends ListenerAdapter {
             locale = "de";
         }
         return locale;
-    }
-
-    public CsStatsService getCsStatsService() {
-        return csStatsService;
-    }
-
-    public void setCsStatsService(CsStatsService csStatsService) {
-        this.csStatsService = csStatsService;
-    }
-
-    public RetakeService getRetakeService() {
-        return retakeService;
-    }
-
-    public void setRetakeService(RetakeService retakeService) {
-        this.retakeService = retakeService;
     }
 }
