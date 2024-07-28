@@ -28,7 +28,7 @@ public class ResponseData {
         this.steamUserInfo = steamUserInfo;
     }
 
-    public EmbedBuilder returnBasicInfo(ResourceBundle resourceBundle) {
+    public EmbedBuilder getBasicInfo(ResourceBundle resourceBundle) {
 
         return new EmbedBuilder()
                 .setTitle(resourceBundle.getString("stats.title").replace("%s", getSteamUserInfo().getPlayers().get(0).getPersonaname()))

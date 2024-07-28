@@ -70,7 +70,6 @@ public class CounterStrikeBotListener extends ListenerAdapter {
             event.deferReply().queue();
             event.getHook().sendMessage(csFunService.handleWowEvent(event, locale)).queue();
         }
-
     }
 
     protected String getUserLocale(GenericCommandInteractionEvent event) {

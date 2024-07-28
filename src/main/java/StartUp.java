@@ -37,16 +37,14 @@ public class StartUp {
             //figure out a way to get discord guild locale if possible
             //FYI: Locale.getDefault() returns locale of OS
             ResourceBundle resourceBundle = ResourceBundle.getBundle("localization", new Locale("en"));
-
-            FaceitMatchService faceitMatchService = new FaceitMatchService(properties);
             DataService dataService = null;
-
             try {
                 dataService = new DataService(properties);
             } catch (SQLException ex) {
                 System.out.println("SQL Exception thrown: " + ex.getMessage());
             }
 
+            FaceitMatchService faceitMatchService = new FaceitMatchService(properties, dataService);
 
             JDA jda = JDABuilder.createDefault(properties.getProperty("discord.apiToken"))
                     .addEventListeners(new CounterStrikeBotListener(properties, dataService))
@@ -62,14 +60,15 @@ public class StartUp {
                     Commands.context(Command.Type.USER, "wow")).queue();
             jda.awaitReady();
 
-            /*
             port(50429);
-            get("/data", (request, response) -> {
-                faceitMatchService.receiveMatchUpdate(request);
-                return null;
+            get("/faceit-match-started", (request, response) -> {
+                faceitMatchService.handleFaceitMatchStartEvent(request, jda.getGuilds());
+                return response;
             });
-             */
-
+            get("/faceit-match-ended", (request, response) -> {
+                faceitMatchService.handleFaceitMatchEndEvent(request, jda.getGuilds());
+                return response;
+            });
         } catch (InterruptedException ex) {
             System.out.println("InterruptedException thrown: " + ex.getMessage());
         } catch (IOException ex) {

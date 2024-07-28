@@ -33,8 +33,8 @@ public class CsStatsService {
         String requestedUser = event.getOption("player").getAsString().toLowerCase();
 
         try {
-            ResponseData responseData = handleGlobalOrNormalUser(requestedUser);
-            return responseData.returnBasicInfo(resourceBundle);
+            ResponseData responseData = getUserResponseData(requestedUser);
+            return responseData.getBasicInfo(resourceBundle);
         } catch (InterruptedException ex) {
             System.out.println("InterruptedException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedException"));
@@ -55,7 +55,7 @@ public class CsStatsService {
         try {
             String requestedUserOne = event.getOption("playerone").getAsString().toLowerCase();
             String requestedUserTwo = event.getOption("playertwo").getAsString().toLowerCase();
-            return comparePlayers(handleGlobalOrNormalUser(requestedUserOne), handleGlobalOrNormalUser(requestedUserTwo));
+            return comparePlayers(getUserResponseData(requestedUserOne), getUserResponseData(requestedUserTwo));
         } catch (NullPointerException ex) {
             System.out.println("NullPointerException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.wrongQueryParameters"));
@@ -72,7 +72,6 @@ public class CsStatsService {
     }
 
     private EmbedBuilder comparePlayers(ResponseData playerOneData, ResponseData playerTwoData) {
-
         EmbedBuilder embedBuilder = new EmbedBuilder();
         winsOne = 0;
         winsTwo = 0;
@@ -91,12 +90,10 @@ public class CsStatsService {
         } else if(winsTwo > winsOne) {
             embedBuilder.setImage(playerTwoData.getSteamUserInfo().getPlayers().get(0).getAvatarmedium());
         }
-
         return embedBuilder;
     }
 
     private String getWinner(ResponseData playerOneData, ResponseData playerTwoData, String statName, boolean higherRequired) {
-
         long playerOneLong = playerOneData.getLongStatsForName(statName);
         long playerTwoLong = playerTwoData.getLongStatsForName(statName);
 
@@ -123,17 +120,13 @@ public class CsStatsService {
         }
     }
 
-    private ResponseData handleGlobalOrNormalUser(String requestedUser) throws NullPointerException, InterruptedException, IOException, SQLException {
-
-        ResponseData responseData;
-
+    private ResponseData getUserResponseData(String requestedUser) throws NullPointerException, InterruptedException, IOException, SQLException {
+        ResponseData responseData = null;
         String steamID = dataService.getSteamIDForUser(requestedUser);
 
         if(steamID == null || steamID.isEmpty()) {
             if(StringUtils.isNumeric(requestedUser)) {
                 responseData = connectionBuilder.getUserAndStats(requestedUser);
-            } else {
-                throw new IOException();
             }
         } else {
             responseData = connectionBuilder.getUserAndStats(steamID);

@@ -46,14 +46,24 @@ public class DataService {
         preparedStatement.execute();
     }
 
-    public HashMap<String, String> returnAllWowEntries() throws SQLException {
-        HashMap<String, String> returnMap = new HashMap<String, String>();
+    public String getUsernameForFaceitID(String faceitID) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT u.username FROM users AS u WHERE u.faceitID = ?");
+        preparedStatement.setString(1, faceitID);
+        ResultSet resultSet = preparedStatement.executeQuery();
 
+        while(resultSet.next()) {
+            return resultSet.getString("u.username");
+        }
+        throw new SQLException("No user for FaceitID could be found");
+    }
+
+    public HashMap<String, String> getAllWowEntries() throws SQLException {
+        HashMap<String, String> returnMap = new HashMap<String, String>();
         PreparedStatement preparedStatement = connection.prepareStatement("SELECT u.username, w.url FROM wow AS w LEFT JOIN users AS u ON w.f_user_id = u.user_id");
-        try (ResultSet resultSet = preparedStatement.executeQuery()) {
-            while(resultSet.next()) {
-                returnMap.put(resultSet.getString("u.username"), resultSet.getString("w.url"));
-            }
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        while(resultSet.next()) {
+            returnMap.put(resultSet.getString("u.username"), resultSet.getString("w.url"));
         }
         return returnMap;
     }
@@ -76,7 +86,6 @@ public class DataService {
 
         preparedStatement = connection.prepareStatement("SELECT user_id FROM users WHERE username = ?");
         preparedStatement.setString(1, username);
-
         resultSet = preparedStatement.executeQuery();
 
         while (resultSet.next()) {

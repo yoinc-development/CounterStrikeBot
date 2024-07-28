@@ -3,9 +3,7 @@ package services;
 import com.google.common.collect.Lists;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -76,14 +74,13 @@ public class CsFunService {
     private void setupWowList() {
         wowList = new HashMap<String, String>();
         try {
-            wowList = dataService.returnAllWowEntries();
+            wowList = dataService.getAllWowEntries();
         } catch (SQLException ex) {
             System.out.println("SQLException thrown: " + ex.getMessage());
         }
     }
 
     private String[] partitionTeams(List<Member> voiceChatMember, OptionMapping amoutOfTeamsOption) {
-
         int amoutOfTeams = 2;
 
         if(amoutOfTeamsOption != null && amoutOfTeamsOption.getAsInt() >= 2) {
@@ -110,7 +107,6 @@ public class CsFunService {
     }
 
     public String handleAddWowEvent(GenericCommandInteractionEvent event, String locale) {
-
         resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
 
         String url = event.getOption("url").getAsString();
