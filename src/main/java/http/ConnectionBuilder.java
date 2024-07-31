@@ -1,6 +1,7 @@
 package http;
 
-import com.google.gson.Gson;
+import com.google.gson.*;
+import model.faceit.FaceitMatch;
 import model.steam.ResponseData;
 
 import java.io.IOException;
@@ -18,7 +19,7 @@ public class ConnectionBuilder {
         this.properties = properties;
     }
 
-    public ResponseData getUserAndStats(String steamID) throws InterruptedException, IOException {
+    public ResponseData fetchSteamUserStats(String steamID) throws InterruptedException, IOException {
 
         HttpClient client = HttpClient.newHttpClient();
 
@@ -39,5 +40,49 @@ public class ConnectionBuilder {
         responseData.setPlayerstats(new Gson().fromJson(response.body(), ResponseData.class).getPlayerstats());
 
         return responseData;
+    }
+
+    public FaceitMatch fetchFaceitMatchDetails(String userId) throws IOException, InterruptedException {
+        HttpClient client = HttpClient.newHttpClient();
+
+        String matchId = fetchMatchId(client, userId);
+
+        HttpRequest request;
+        FaceitMatch responseData;
+
+        request = HttpRequest.newBuilder()
+                .uri(URI.create("https://open.faceit.com/data/v4/matches/" + matchId))
+                .header("Authorization", "Bearer " + properties.getProperty("faceit.api"))
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        responseData = new Gson().fromJson(response.body(), FaceitMatch.class);
+
+        return responseData;
+    }
+
+    private String fetchMatchId(HttpClient client, String userId) throws IOException, InterruptedException {
+        HttpRequest request;
+        String id = null;
+
+        request = HttpRequest.newBuilder()
+                .uri(URI.create("https://www.faceit.com/api/match/v1/matches/groupByState?userId=" + userId))
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        JsonElement jsonElement = JsonParser.parseString(response.body());
+        JsonObject jsonObject = jsonElement.getAsJsonObject();
+
+        JsonObject payload = jsonObject.getAsJsonObject("payload");
+        JsonArray ongoingArray = payload.getAsJsonArray("ONGOING");
+        JsonArray readyArray = payload.getAsJsonArray("READY");
+        if (ongoingArray != null && !ongoingArray.isEmpty()) {
+            JsonObject firstOngoingItem = ongoingArray.get(0).getAsJsonObject();
+            id = firstOngoingItem.get("id").getAsString();
+        } else if (readyArray != null  && !readyArray.isEmpty()) {
+            JsonObject firstReadyItem = readyArray.get(0).getAsJsonObject();
+            id = firstReadyItem.get("id").getAsString();
+        }
+        return id;
     }
 }

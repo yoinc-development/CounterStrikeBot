@@ -126,10 +126,10 @@ public class CsStatsService {
 
         if(steamID == null || steamID.isEmpty()) {
             if(StringUtils.isNumeric(requestedUser)) {
-                responseData = connectionBuilder.getUserAndStats(requestedUser);
+                responseData = connectionBuilder.fetchSteamUserStats(requestedUser);
             }
         } else {
-            responseData = connectionBuilder.getUserAndStats(steamID);
+            responseData = connectionBuilder.fetchSteamUserStats(steamID);
         }
         return responseData;
     }
