@@ -5,7 +5,6 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
 
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Properties;
@@ -16,7 +15,6 @@ public class DiscordService {
 
     DataService dataService;
     Properties properties;
-
     JDA jda;
 
     public DiscordService(Properties properties, DataService dataService) {
@@ -39,26 +37,33 @@ public class DiscordService {
             @Override
             public void run() {
                 System.out.println("Collection Task started at " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")));
-                scheduleCollectionTask();
+                runCollectionTask();
                 System.out.println("Collection Task finished at " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")));
+            }
+        };
+
+        TimerTask statsTask = new TimerTask() {
+            @Override
+            public void run() {
+                runStatsTask();
             }
         };
 
         //TODO set this to daily, not hourly
         Timer timer = new Timer("Daily Collection Timer");
-        long delay = 5000L;
+        long delay = 0L;
         timer.schedule(collectionTask, delay, 3600000L);
     }
 
-    private void scheduleCollectionTask() {
+    private void runCollectionTask() {
         for(Guild guild : jda.getGuilds()) {
             for(Member member : guild.getMembers()) {
-                try {
-                    dataService.addUserToDatabase(member.getUser().getName(), member.getId());
-                } catch (SQLException ex) {
-                    System.out.println("SQLException thrown: " + ex.getMessage());
-                }
+                dataService.addUserToDatabase(member.getUser().getName(), member.getId());
             }
         }
+    }
+
+    private void runStatsTask() {
+
     }
 }

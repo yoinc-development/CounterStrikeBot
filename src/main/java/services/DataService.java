@@ -15,7 +15,7 @@ public class DataService {
     }
 
     private void setupConnection() throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS users (user_id INT AUTO_INCREMENT, username VARCHAR(50) NOT NULL UNIQUE, steamID VARCHAR(250) NOT NULL, PRIMARY KEY (user_id));");
+        PreparedStatement preparedStatement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS users (user_id INT AUTO_INCREMENT, username VARCHAR(50) NOT NULL UNIQUE, steamID VARCHAR(250), faceitID VARCHAR(250), discordID VARCHAR(250) UNIQUE, PRIMARY KEY (user_id));");
         preparedStatement.executeUpdate();
         preparedStatement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS wow (wow_id INT AUTO_INCREMENT, f_user_id INT NOT NULL, url VARCHAR(200) NOT NULL, PRIMARY KEY(wow_id), FOREIGN KEY (f_user_id) REFERENCES users(user_id));");
         preparedStatement.executeUpdate();
@@ -46,11 +46,15 @@ public class DataService {
         preparedStatement.executeUpdate();
     }
 
-    public void addUserToDatabase(String username, String discordID) throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO users(username, discordID) VALUES(?,?)");
-        preparedStatement.setString(1, username);
-        preparedStatement.setString(2, discordID);
-        preparedStatement.executeUpdate();
+    public void addUserToDatabase(String username, String discordID) {
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO users(username, discordID) VALUES(?,?)");
+            preparedStatement.setString(1, username);
+            preparedStatement.setString(2, discordID);
+            preparedStatement.executeUpdate();
+        } catch (SQLException ex) {
+            System.out.println("Can't add " + username + " with discordID " + discordID);
+        }
     }
 
     public String getUsernameForFaceitID(String faceitID) throws SQLException {

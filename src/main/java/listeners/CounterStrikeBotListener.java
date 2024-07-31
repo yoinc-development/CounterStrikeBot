@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import services.*;
 
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
 
 public class CounterStrikeBotListener extends ListenerAdapter {
 
@@ -75,6 +76,6 @@ public class CounterStrikeBotListener extends ListenerAdapter {
     @Override
     public void onReady(ReadyEvent event){
         JDA jda = event.getJDA();
-        new Thread( () -> discordService.scheduleAllTasks(jda));
+        CompletableFuture.runAsync( () -> discordService.scheduleAllTasks(jda));
     }
 }
