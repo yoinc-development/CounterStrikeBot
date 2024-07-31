@@ -1,7 +1,11 @@
 package model.faceit;
 
+import com.google.gson.annotations.SerializedName;
+
 public class FaceitMatchTeams {
+    @SerializedName(value = "property1", alternate = {"faction1"})
     private FaceitMatchTeam property1;
+    @SerializedName(value = "property2", alternate = {"faction2"})
     private FaceitMatchTeam property2;
 
     public FaceitMatchTeam getProperty1() {

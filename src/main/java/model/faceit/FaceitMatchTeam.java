@@ -1,12 +1,17 @@
 package model.faceit;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.List;
 
 public class FaceitMatchTeam {
     private String avatar;
+    @SerializedName(value = "nickname", alternate = {"name"})
     private String nickname;
+    @SerializedName(value = "team_id", alternate = {"faction_id", "id"})
     private String team_id;
     private String type;
+    @SerializedName(value = "players", alternate = {"roster"})
     private List<FaceitPlayer> players;
 
     public String getAvatar() {
