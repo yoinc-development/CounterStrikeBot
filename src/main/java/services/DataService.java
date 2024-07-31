@@ -36,14 +36,21 @@ public class DataService {
         PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO wow(f_user_id, url) VALUES(?,?)");
         preparedStatement.setInt(1, getUserIDForUsername(username));
         preparedStatement.setString(2, url);
-        preparedStatement.execute();
+        preparedStatement.executeUpdate();
     }
 
     public void updateWowEvent(String username, String url) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement("UPDATE wow SET url = ? WHERE f_user_id = ?");
         preparedStatement.setString(1, url);
         preparedStatement.setInt(2, getUserIDForUsername(username));
-        preparedStatement.execute();
+        preparedStatement.executeUpdate();
+    }
+
+    public void addUserToDatabase(String username, String discordID) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO users(username, discordID) VALUES(?,?)");
+        preparedStatement.setString(1, username);
+        preparedStatement.setString(2, discordID);
+        preparedStatement.executeUpdate();
     }
 
     public String getUsernameForFaceitID(String faceitID) throws SQLException {
@@ -80,7 +87,7 @@ public class DataService {
             } else if (returnedRows == 0) {
                 preparedStatement = connection.prepareStatement("INSERT INTO users VALUES (?,'')");
                 preparedStatement.setString(1, username);
-                preparedStatement.execute();
+                preparedStatement.executeUpdate();
             }
         }
 
