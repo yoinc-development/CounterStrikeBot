@@ -45,7 +45,7 @@ public class ConnectionBuilder {
     public FaceitMatch fetchFaceitMatchDetails(String userId) throws IOException, InterruptedException {
         HttpClient client = HttpClient.newHttpClient();
 
-        String matchId = fetchMatchId(client, userId);
+        String matchId = fetchFaceitMatchId(client, userId);
 
         HttpRequest request;
         FaceitMatch responseData;
@@ -61,7 +61,7 @@ public class ConnectionBuilder {
         return responseData;
     }
 
-    private String fetchMatchId(HttpClient client, String userId) throws IOException, InterruptedException {
+    private String fetchFaceitMatchId(HttpClient client, String userId) throws IOException, InterruptedException {
         HttpRequest request;
         String id = null;
 

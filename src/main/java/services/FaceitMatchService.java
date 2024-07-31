@@ -1,16 +1,11 @@
 package services;
 
-import com.google.gson.*;
 import http.ConnectionBuilder;
 import model.faceit.FaceitMatch;
 import net.dv8tion.jda.api.entities.Guild;
 import spark.Request;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Properties;
 import java.util.ResourceBundle;
