@@ -1,32 +1,33 @@
 package listeners;
 
-import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
+import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import services.CsFunService;
-import services.CsStatsService;
-import services.DataService;
-import services.RetakeService;
+import services.*;
 
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
 
 public class CounterStrikeBotListener extends ListenerAdapter {
 
     private CsStatsService csStatsService;
     private RetakeService retakeService;
     private CsFunService csFunService;
+    private DiscordService discordService;
 
     public CounterStrikeBotListener(Properties properties, DataService dataService) {
         csStatsService = new CsStatsService(properties, dataService);
         csFunService = new CsFunService(properties, dataService);
         retakeService = new RetakeService(properties);
+        discordService = new DiscordService(properties, dataService);
     }
 
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
 
-        String locale = getUserLocale(event);
+        String locale = discordService.getUserLocale(event);
 
         if ("stats".equals(event.getName())) {
             event.deferReply().queue();
@@ -64,7 +65,7 @@ public class CounterStrikeBotListener extends ListenerAdapter {
         language of the enacting user. as a "neutral" locale the guild could be used
         (event.getGuild().getLocale()) but it could result in the same problem.
          */
-        String locale = getUserLocale(event);
+        String locale = discordService.getUserLocale(event);
 
         if("wow".equals(event.getName())) {
             event.deferReply().queue();
@@ -72,11 +73,9 @@ public class CounterStrikeBotListener extends ListenerAdapter {
         }
     }
 
-    protected String getUserLocale(GenericCommandInteractionEvent event) {
-        String locale = "en";
-        if(event.getInteraction().getUserLocale().getLocale().equals("de")) {
-            locale = "de";
-        }
-        return locale;
+    @Override
+    public void onReady(ReadyEvent event){
+        JDA jda = event.getJDA();
+        CompletableFuture.runAsync( () -> discordService.scheduleAllTasks(jda));
     }
 }

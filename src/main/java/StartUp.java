@@ -5,6 +5,9 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.ChunkingFilter;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import services.DataService;
 import services.FaceitMatchService;
 
@@ -48,6 +51,10 @@ public class StartUp {
 
             JDA jda = JDABuilder.createDefault(properties.getProperty("discord.apiToken"))
                     .addEventListeners(new CounterStrikeBotListener(properties, dataService))
+                    .setChunkingFilter(ChunkingFilter.ALL)
+                    .setMemberCachePolicy(MemberCachePolicy.ALL)
+                    .enableIntents(GatewayIntent.GUILD_MEMBERS)
+                    .enableIntents(GatewayIntent.DIRECT_MESSAGES)
                     .build();
 
             jda.getPresence().setActivity(Activity.playing("YOINC.ch"));

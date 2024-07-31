@@ -1,5 +1,7 @@
 package model.faceit;
 
+import com.google.gson.annotations.SerializedName;
+
 public class FaceitPlayer {
     private String avatar;
     private String faceit_url;
@@ -7,6 +9,7 @@ public class FaceitPlayer {
     private String game_player_name;
     private String nickname;
     private String player_id;
+    @SerializedName(value = "skill_level", alternate = {"game_skill_level"})
     private int skill_level;
 
     public String getAvatar() {
