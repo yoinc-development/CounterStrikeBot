@@ -9,7 +9,6 @@ import java.util.ResourceBundle;
 public class RankStats {
 
     enum Rank {
-        NONE("None"),
         SILVER_I("Silver I"),
         SILVER_II("Silver II"),
         SILVER_III("Silver III"),
@@ -143,7 +142,7 @@ public class RankStats {
                 .setTitle(resourceBundle.getString("stats.retakeTitle").replace("%s", rankStats.getName()))
                 .setAuthor(resourceBundle.getString("stats.author"), "https://www.yoinc.ch")
                 .addField(new MessageEmbed.Field(resourceBundle.getString("stats.experience"), String.valueOf(rankStats.getExperience()), true))
-                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.rank"), String.valueOf(Rank.values()[rankStats.getRank() - 1].rankDesc), true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.rank"), String.valueOf(Rank.values()[rankStats.getRank()].rankDesc), true))
                 .addField(new MessageEmbed.Field(resourceBundle.getString("stats.kills"), String.valueOf(rankStats.getKills()), true))
                 .addField(new MessageEmbed.Field(resourceBundle.getString("stats.deaths"), String.valueOf(rankStats.getDeaths()), true))
                 .addField(new MessageEmbed.Field(resourceBundle.getString("stats.assists"), String.valueOf(rankStats.getAssists()), true))
