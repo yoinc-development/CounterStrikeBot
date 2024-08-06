@@ -71,7 +71,7 @@ public class CounterStrikeBotListener extends ListenerAdapter {
             event.deferReply().queue();
             event.getHook().sendMessage(csFunService.handleWowEvent(event, locale)).queue();
         }
-        if("Retake Stats".equals(event.getName())){
+        if("retake stats".equals(event.getName())){
             event.deferReply().queue();
             event.getHook().sendMessageEmbeds(retakeService.handleStatsEvent(event, locale).build()).queue();
         }

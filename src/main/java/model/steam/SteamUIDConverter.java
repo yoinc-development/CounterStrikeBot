@@ -28,9 +28,7 @@ public class SteamUIDConverter {
         }
 
         long i64friendID = (long) iAuthID * 2;
-
         i64friendID += 76561197960265728L + iServer;
-
         return i64friendID;
     }
 
@@ -49,9 +47,7 @@ public class SteamUIDConverter {
         if (tempsteamid64.compareTo(baseValue) > 0) {
             tempsteamid64 = tempsteamid64.subtract(baseValue);
         }
-
         tempsteamid64 = tempsteamid64.divide(two);
-
         return "STEAM_1:" + iServer + ":" + tempsteamid64;
     }
 }

@@ -65,7 +65,7 @@ public class StartUp {
                     Commands.slash("wow", resourceBundle.getString("command.wow.description")).addOption(OptionType.STRING, "url", resourceBundle.getString("command.wow.value.description"), true),
                     Commands.slash("teams", resourceBundle.getString("command.teams.description")).addOption(OptionType.NUMBER, "amountofteams", resourceBundle.getString("command.teams.value.description"), false),
                     Commands.context(Command.Type.USER, "wow"),
-                    Commands.context(Command.Type.USER, "Retake Stats")).queue();
+                    Commands.context(Command.Type.USER, "retake stats")).queue();
 
             jda.awaitReady();
 

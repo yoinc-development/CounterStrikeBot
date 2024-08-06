@@ -41,42 +41,32 @@ public class RetakeService {
         resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
 
         try {
-            //rcon channel
             Rcon rcon = new Rcon(serverIp, serverPort, serverPassword.getBytes());
-            //list of allowed maps to switch to set in properties
             List<String> allowedMapsList = Arrays.asList(allowedMaps.split(","));
 
             if (event.getMember().getRoles().contains(event.getGuild().getRoleById(allowedRoleId))) {
                 if (allowedMapsList.contains(event.getOption("map").getAsString())) {
                     LocalTime currentTime = LocalTime.now();
                     if (endTime == null || currentTime.isAfter(endTime)) {
-                        StringBuilder logMessage = new StringBuilder();
-                        logMessage.append("---\n");
-                        logMessage.append("Requested Time: " + currentTime.format(LOGGED_TIME) + "\n");
-                        //logMessage.append(event.getMember().getNickname() + ": " +  + "\n");
-
                         rcon.command("changelevel " + event.getOption("map").getAsString());
                         endTime = LocalTime.now().plusSeconds(delay);
-
-                        logMessage.append("End Time: " + endTime.format(LOGGED_TIME) + "\n");
-                        logMessage.append("---\n");
-
-                        System.out.println(logMessage.toString());
-
-                        return "Map gewechselt auf " + event.getOption("map").getAsString();
+                        return resourceBundle.getString("map.changed").replace("%s", event.getOption("map").getAsString());
                     } else {
                         int missingTime = endTime.toSecondOfDay() - currentTime.toSecondOfDay();
-                        return "Cooldown aktiv. Bitte warte noch " + missingTime + " Sekunden.";
+                        return resourceBundle.getString("map.cooldown").replace("%s", String.valueOf(missingTime));
                     }
                 } else {
-                    return "Diese Map ist nicht gültig.";
+                    return resourceBundle.getString("error.invalidmap");
                 }
             } else {
-                return "Du darfst leider keine Maps wechseln. :(";
+                return resourceBundle.getString("error.mapnotallowed");
             }
-        } catch (AuthenticationException | IOException ex) {
+        } catch (AuthenticationException ex) {
+            System.out.println("AuthenticationException thrown: " + ex.getMessage());
             return resourceBundle.getString("error.majorerror");
-        }
+        } catch (IOException ex) {
+            System.out.println("IOException thrown: " + ex.getMessage());
+            return resourceBundle.getString("error.majorerror");}
     }
 
     public EmbedBuilder handleStatsEvent(UserContextInteractionEvent event, String locale) {
