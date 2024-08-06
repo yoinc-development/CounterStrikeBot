@@ -34,6 +34,7 @@ public class RetakeService {
         this.serverPassword = properties.getProperty("server.password");
         this.delay = Integer.parseInt(properties.getProperty("server.delay"));
         this.allowedMaps = properties.getProperty("csgo.maps");
+        this.dataService = dataService;
     }
 
     public String handleMapEvent(SlashCommandInteractionEvent event, String locale) {

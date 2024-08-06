@@ -2,8 +2,8 @@ package retakeServer;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import spark.resource.Resource;
 
+import java.text.DecimalFormat;
 import java.util.ResourceBundle;
 
 public class RankStats {
@@ -157,7 +157,7 @@ public class RankStats {
 
     private int getHeadshotPer() {
         if (headshots != 0) {
-            return kills / headshots;
+            return (int) Math.ceil(((double) headshots / (double) kills) * 100);
         } else {
             return 0;
         }
@@ -165,11 +165,9 @@ public class RankStats {
 
     private double getKd() {
         if (deaths != 0) {
-            return (float) kills / deaths;
+            return Math.round(((float) kills / deaths) * 10.0) /10.0;
         } else {
             return 0d;
         }
     }
-
-
 }
