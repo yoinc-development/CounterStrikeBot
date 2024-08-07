@@ -35,6 +35,7 @@ public class MessageService {
     public String sendMessageInCorrectChannel(GenericCommandInteractionEvent event, String message) {
         if(event.getGuild().getId().equals(properties.getProperty("discord.thisIsMyHome"))) {
             if(!event.getMessageChannel().getId().equals(HOME_CHANNEL)) {
+                //TODO: Getting null for .getTextChannelById(HOME_CHANNEL) when sending /map in csgo-stuff
                 event.getHook().getInteraction().getGuild().getTextChannelById(HOME_CHANNEL).sendMessage(message).queue();
                 return resourceBundle.getString("info.messagesent");
             }

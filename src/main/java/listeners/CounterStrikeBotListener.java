@@ -53,6 +53,11 @@ public class CounterStrikeBotListener extends ListenerAdapter {
             event.deferReply().queue();
             event.getHook().sendMessageEmbeds(csFunService.handleSetTeamsEvent(event, locale).build()).queue();
         }
+
+        if("status".equals(event.getName())) {
+            event.deferReply().queue();
+            event.getHook().sendMessageEmbeds(retakeService.handleStatusEvent(event, locale).build()).queue();
+        }
     }
 
     @Override

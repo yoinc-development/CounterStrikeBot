@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEven
 import net.kronos.rkon.core.Rcon;
 import net.kronos.rkon.core.ex.AuthenticationException;
 import retakeServer.RankStats;
+import retakeServer.ServerStatus;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -76,12 +77,24 @@ public class RetakeService {
         try {
             RankStats rankStats = dataService.getRanksStatsForUsername(user.getName());
             if (rankStats != null) {
-                EmbedBuilder message = RankStats.getRankStatsMessage(resourceBundle, rankStats);
-                return message;
+                return RankStats.getRankStatsMessage(resourceBundle, rankStats);
             }
         } catch (SQLException ex) {
             System.out.println("SQLException thrown: " + ex.getMessage());
         }
         return new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror"));
+    }
+
+    public EmbedBuilder handleStatusEvent(SlashCommandInteractionEvent event, String locale) {
+        resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
+        try {
+            Rcon rcon = new Rcon(serverIp, serverPort, serverPassword.getBytes());
+            String status = rcon.command("status");
+            ServerStatus serverStatus = new ServerStatus(status);
+            rcon.disconnect();
+            return serverStatus.getStatusMessage(resourceBundle);
+        } catch (AuthenticationException | IOException e) {
+            return ServerStatus.getInactiveStatusMessage(resourceBundle);
+        }
     }
 }
