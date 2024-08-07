@@ -3,6 +3,7 @@ package services;
 import com.google.common.collect.Lists;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
@@ -62,15 +63,53 @@ public class CsFunService {
             if(vcToUse.getMembers().size() >= 2) {
                 toShuffleList.addAll(vcToUse.getMembers());
                 Collections.shuffle(toShuffleList);
-                //return messageService.sendEmbedMessageInCorrectChannel(event, partitionTeams(toShuffleList, event.getOption("amountofteams")), locale);
+                return messageService.sendEmbedMessageInCorrectChannel(event, buildEmbed(partitionTeams(toShuffleList, event.getOption("amountofteams"))) , locale);
             } else {
                 return new EmbedBuilder().setTitle(resourceBundle.getString("error.noteamcreation"));
             }
         } else {
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.notincorrectvc"));
         }
-        //TODO delete
-        return null;
+    }
+
+    public String handleAddWowEvent(GenericCommandInteractionEvent event, String locale) {
+        resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
+
+        String url = event.getOption("url").getAsString();
+        String user = event.getUser().getName();
+
+        Pattern ytPattern = Pattern.compile("(?:https\\:\\/\\/www\\.youtube\\.com\\/watch\\?v\\=)");
+        Pattern dPattern = Pattern.compile("(?:https\\:\\/\\/cdn\\.discordapp\\.com\\/attachments)");
+
+        Matcher ytMatcher = ytPattern.matcher(url);
+        Matcher dMatcher = dPattern.matcher(url);
+
+        try {
+            if (ytMatcher.find() || dMatcher.find()) {
+                if (wowList.containsKey(user)) {
+                    dataService.updateWowEvent(user, url);
+                } else {
+                    dataService.addWowEvent(user, url);
+                }
+                wowList.put(user, url);
+                return resourceBundle.getString("wow.done");
+            } else {
+                return resourceBundle.getString("error.invalidwow");
+            }
+        } catch (SQLException ex) {
+            System.out.println("SQLException thrown: " + ex.getMessage());
+            return resourceBundle.getString("error.majorerror");
+        }
+    }
+
+    private EmbedBuilder buildEmbed(String teams[]) {
+        EmbedBuilder embedBuilder = new EmbedBuilder();
+        embedBuilder.setTitle(resourceBundle.getString("teams.title"))
+                .setAuthor(resourceBundle.getString("stats.author"), "https://www.yoinc.ch");
+        for (int i = 0; i < teams.length; i++) {
+            embedBuilder.addField(new MessageEmbed.Field("Team " + (i + 1), teams[i], true));
+        }
+        return embedBuilder;
     }
 
     private void setupWowList() {
@@ -106,35 +145,5 @@ public class CsFunService {
             builder.append(member.getUser().getName() + "\n");
         }
         return builder.toString();
-    }
-
-    public String handleAddWowEvent(GenericCommandInteractionEvent event, String locale) {
-        resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
-
-        String url = event.getOption("url").getAsString();
-        String user = event.getUser().getName();
-
-        Pattern ytPattern = Pattern.compile("(?:https\\:\\/\\/www\\.youtube\\.com\\/watch\\?v\\=)");
-        Pattern dPattern = Pattern.compile("(?:https\\:\\/\\/cdn\\.discordapp\\.com\\/attachments)");
-
-        Matcher ytMatcher = ytPattern.matcher(url);
-        Matcher dMatcher = dPattern.matcher(url);
-
-        try {
-            if (ytMatcher.find() || dMatcher.find()) {
-                if (wowList.containsKey(user)) {
-                    dataService.updateWowEvent(user, url);
-                } else {
-                    dataService.addWowEvent(user, url);
-                }
-                wowList.put(user, url);
-                return resourceBundle.getString("wow.done");
-            } else {
-                return resourceBundle.getString("error.invalidwow");
-            }
-        } catch (SQLException ex) {
-            System.out.println("SQLException thrown: " + ex.getMessage());
-            return resourceBundle.getString("error.majorerror");
-        }
     }
 }
