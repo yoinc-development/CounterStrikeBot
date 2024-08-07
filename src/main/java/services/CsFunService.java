@@ -62,13 +62,15 @@ public class CsFunService {
             if(vcToUse.getMembers().size() >= 2) {
                 toShuffleList.addAll(vcToUse.getMembers());
                 Collections.shuffle(toShuffleList);
-                return messageService.sendEmbedMessageInCorrectChannel(event, partitionTeams(toShuffleList, event.getOption("amountofteams")), locale);
+                //return messageService.sendEmbedMessageInCorrectChannel(event, partitionTeams(toShuffleList, event.getOption("amountofteams")), locale);
             } else {
                 return new EmbedBuilder().setTitle(resourceBundle.getString("error.noteamcreation"));
             }
         } else {
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.notincorrectvc"));
         }
+        //TODO delete
+        return null;
     }
 
     private void setupWowList() {
