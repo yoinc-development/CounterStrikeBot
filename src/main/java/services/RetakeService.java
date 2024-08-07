@@ -11,12 +11,10 @@ import retakeServer.RankStats;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class RetakeService {
 
-    private final DateTimeFormatter LOGGED_TIME = DateTimeFormatter.ofPattern("HH:mm:ss");
     private String allowedRoleId;
     private String serverIp;
     private int serverPort;
@@ -26,6 +24,7 @@ public class RetakeService {
     private LocalTime endTime;
     private ResourceBundle resourceBundle;
     private DataService dataService;
+    MessageService messageService;
 
     public RetakeService(Properties properties, DataService dataService) {
         this.allowedRoleId = properties.getProperty("discord.allowedRoleId");
@@ -35,6 +34,7 @@ public class RetakeService {
         this.delay = Integer.parseInt(properties.getProperty("server.delay"));
         this.allowedMaps = properties.getProperty("csgo.maps");
         this.dataService = dataService;
+        messageService = new MessageService(properties);
     }
 
     public String handleMapEvent(SlashCommandInteractionEvent event, String locale) {
@@ -50,23 +50,24 @@ public class RetakeService {
                     if (endTime == null || currentTime.isAfter(endTime)) {
                         rcon.command("changelevel " + event.getOption("map").getAsString());
                         endTime = LocalTime.now().plusSeconds(delay);
-                        return resourceBundle.getString("map.changed").replace("%s", event.getOption("map").getAsString());
+                        return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("map.changed").replace("%s", event.getOption("map").getAsString()));
                     } else {
                         int missingTime = endTime.toSecondOfDay() - currentTime.toSecondOfDay();
-                        return resourceBundle.getString("map.cooldown").replace("%s", String.valueOf(missingTime));
+                        return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("map.cooldown").replace("%s", String.valueOf(missingTime)));
                     }
                 } else {
-                    return resourceBundle.getString("error.invalidmap");
+                    return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.invalidmap"));
                 }
             } else {
-                return resourceBundle.getString("error.mapnotallowed");
+                return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.mapnotallowed"));
             }
         } catch (AuthenticationException ex) {
             System.out.println("AuthenticationException thrown: " + ex.getMessage());
-            return resourceBundle.getString("error.majorerror");
+            return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.majorerror"));
         } catch (IOException ex) {
             System.out.println("IOException thrown: " + ex.getMessage());
-            return resourceBundle.getString("error.majorerror");}
+            return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.majorerror"));
+        }
     }
 
     public EmbedBuilder handleStatsEvent(UserContextInteractionEvent event, String locale) {

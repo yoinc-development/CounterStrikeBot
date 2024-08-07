@@ -36,7 +36,7 @@ public class MessageService {
         if(event.getGuild().getId().equals(properties.getProperty("discord.thisIsMyHome"))) {
             if(!event.getMessageChannel().getId().equals(HOME_CHANNEL)) {
                 event.getHook().getInteraction().getGuild().getTextChannelById(HOME_CHANNEL).sendMessage(message).queue();
-                return resourceBundle.getString("wow.messageSent");
+                return resourceBundle.getString("info.messagesent");
             }
         }
         return message;
