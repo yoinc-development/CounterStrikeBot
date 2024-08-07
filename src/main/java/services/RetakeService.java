@@ -92,7 +92,8 @@ public class RetakeService {
             String status = rcon.command("status");
             ServerStatus serverStatus = new ServerStatus(status);
             rcon.disconnect();
-            return serverStatus.getStatusMessage(resourceBundle);
+            EmbedBuilder statusMessage = serverStatus.getStatusMessage(resourceBundle);
+            return messageService.sendEmbedMessageInCorrectChannel(event, statusMessage, locale);
         } catch (AuthenticationException | IOException e) {
             return ServerStatus.getInactiveStatusMessage(resourceBundle);
         }

@@ -66,6 +66,15 @@ public class ServerStatus {
         return serverState == ServerState.ACTIVE ? "active" : "active (empty)";
     }
 
+    private String getPlayerListString() {
+        StringBuilder builder = new StringBuilder();
+
+        for (String playerName : playerNames) {
+            builder.append(playerName).append("\n");
+        }
+        return builder.toString();
+    }
+
     public EmbedBuilder getStatusMessage(ResourceBundle resourceBundle) {
         EmbedBuilder embedBuilder = new EmbedBuilder()
                 .setTitle(resourceBundle.getString("serverstatus.title"))
@@ -74,9 +83,7 @@ public class ServerStatus {
                 .addField(new MessageEmbed.Field(resourceBundle.getString("serverstatus.currentMap"), String.valueOf(currentMap), true));
 
         if (serverState == ServerState.ACTIVE) {
-            for (String player : playerNames) {
-                embedBuilder.addField(new MessageEmbed.Field(resourceBundle.getString("serverstatus.connectedPlayers"), player, true));
-            }
+            embedBuilder.addField(new MessageEmbed.Field(resourceBundle.getString("serverstatus.connectedPlayers"), getPlayerListString(), true));
         }
         return embedBuilder;
     }
