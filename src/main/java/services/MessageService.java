@@ -19,14 +19,17 @@ public class MessageService {
     }
 
 
-    public EmbedBuilder sendEmbedMessageInCorrectChannel(GenericCommandInteractionEvent event, String[] teams, String locale) {
+    public EmbedBuilder sendEmbedMessageInCorrectChannel(GenericCommandInteractionEvent event, EmbedBuilder embedBuilder, String locale) {
         resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
 
-        EmbedBuilder embedBuilder = new EmbedBuilder();
-        embedBuilder.setTitle(resourceBundle.getString("teams.title"))
-                .setAuthor(resourceBundle.getString("stats.author"), "https://www.yoinc.ch");
-        for (int i = 0; i < teams.length; i++) {
-            embedBuilder.addField(new MessageEmbed.Field("Team " + (i + 1), teams[i], true));
+        if(event.getGuild().getId().equals(properties.getProperty("discord.thisIsMyHome"))) {
+            if(!event.getMessageChannel().getId().equals(HOME_CHANNEL)) {
+                EmbedBuilder infoEmbed = new EmbedBuilder();
+                infoEmbed.setTitle(resourceBundle.getString("info.messagesent"))
+                        .setAuthor(resourceBundle.getString("stats.author"), "https://www.yoinc.ch");
+                event.getHook().getInteraction().getGuild().getTextChannelById(HOME_CHANNEL).sendMessageEmbeds(embedBuilder.build()).queue();
+                return infoEmbed;
+            }
         }
         return embedBuilder;
     }
@@ -36,7 +39,7 @@ public class MessageService {
         if(event.getGuild().getId().equals(properties.getProperty("discord.thisIsMyHome"))) {
             if(!event.getMessageChannel().getId().equals(HOME_CHANNEL)) {
                 event.getHook().getInteraction().getGuild().getTextChannelById(HOME_CHANNEL).sendMessage(message).queue();
-                return resourceBundle.getString("wow.messageSent");
+                return resourceBundle.getString("info.messagesent");
             }
         }
         return message;

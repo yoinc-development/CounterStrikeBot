@@ -1,5 +1,8 @@
 package services;
 
+import model.steam.SteamUIDConverter;
+import retakeServer.RankStats;
+
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Properties;
@@ -21,12 +24,12 @@ public class DataService {
         preparedStatement.executeUpdate();
     }
 
-    public String getSteamIDForUser(String requestedUser) throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM users WHERE user = ?");
+    public String getSteamIDForUsername(String requestedUser) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM users WHERE username = ?");
         preparedStatement.setString(1, requestedUser);
         ResultSet resultSet = preparedStatement.executeQuery();
 
-        while(resultSet.next()) {
+        while (resultSet.next()) {
             return resultSet.getString("steamID");
         }
         return null;
@@ -62,7 +65,7 @@ public class DataService {
         preparedStatement.setString(1, faceitID);
         ResultSet resultSet = preparedStatement.executeQuery();
 
-        while(resultSet.next()) {
+        while (resultSet.next()) {
             return resultSet.getString("u.username");
         }
         throw new SQLException("No user for FaceitID could be found");
@@ -73,10 +76,25 @@ public class DataService {
         PreparedStatement preparedStatement = connection.prepareStatement("SELECT u.username, w.url FROM wow AS w LEFT JOIN users AS u ON w.f_user_id = u.user_id");
         ResultSet resultSet = preparedStatement.executeQuery();
 
-        while(resultSet.next()) {
+        while (resultSet.next()) {
             returnMap.put(resultSet.getString("u.username"), resultSet.getString("w.url"));
         }
         return returnMap;
+    }
+
+    public RankStats getRanksStatsForUsername(String username) throws SQLException {
+        String steamId64 = getSteamIDForUsername(username);
+        String steamId = SteamUIDConverter.getSteamId(Long.parseLong(steamId64));
+
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM lvl_base WHERE steam = ?");
+        preparedStatement.setString(1, steamId);
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        if (resultSet.next()) {
+            return mapRowToRankStats(resultSet);
+        }
+        return null;
+
     }
 
     private int getUserIDForUsername(String username) throws SQLException {
@@ -104,4 +122,26 @@ public class DataService {
         }
         throw new SQLException("No userID can be returned");
     }
+
+    private RankStats mapRowToRankStats(ResultSet resultSet) throws SQLException {
+        String name = resultSet.getString("name");
+        int experience = resultSet.getInt("value");
+        int rank = resultSet.getInt("rank");
+        int kills = resultSet.getInt("kills");
+        int deaths = resultSet.getInt("deaths");
+        int shoots = resultSet.getInt("shoots");
+        int hits = resultSet.getInt("hits");
+        int headshots = resultSet.getInt("headshots");
+        int assists = resultSet.getInt("assists");
+        int roundWin = resultSet.getInt("round_win");
+        int roundLose = resultSet.getInt("round_lose");
+        long playtime = resultSet.getLong("playtime");
+        long lastConnect = resultSet.getLong("lastconnect");
+        return new RankStats(name,
+                experience, rank, kills, deaths, shoots, hits,
+                headshots, assists, roundWin, roundLose, playtime, lastConnect);
+
+    }
+
+
 }

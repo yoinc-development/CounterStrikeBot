@@ -20,7 +20,7 @@ public class CounterStrikeBotListener extends ListenerAdapter {
     public CounterStrikeBotListener(Properties properties, DataService dataService) {
         csStatsService = new CsStatsService(properties, dataService);
         csFunService = new CsFunService(properties, dataService);
-        retakeService = new RetakeService(properties);
+        retakeService = new RetakeService(properties, dataService);
         discordService = new DiscordService(properties, dataService);
     }
 
@@ -53,6 +53,11 @@ public class CounterStrikeBotListener extends ListenerAdapter {
             event.deferReply().queue();
             event.getHook().sendMessageEmbeds(csFunService.handleSetTeamsEvent(event, locale).build()).queue();
         }
+
+        if("status".equals(event.getName())) {
+            event.deferReply().queue();
+            event.getHook().sendMessageEmbeds(retakeService.handleStatusEvent(event, locale).build()).queue();
+        }
     }
 
     @Override
@@ -70,6 +75,10 @@ public class CounterStrikeBotListener extends ListenerAdapter {
         if("wow".equals(event.getName())) {
             event.deferReply().queue();
             event.getHook().sendMessage(csFunService.handleWowEvent(event, locale)).queue();
+        }
+        if("retake stats".equals(event.getName())){
+            event.deferReply().queue();
+            event.getHook().sendMessageEmbeds(retakeService.handleStatsEvent(event, locale).build()).queue();
         }
     }
 

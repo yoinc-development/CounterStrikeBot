@@ -122,7 +122,7 @@ public class CsStatsService {
 
     private ResponseData getUserResponseData(String requestedUser) throws NullPointerException, InterruptedException, IOException, SQLException {
         ResponseData responseData = null;
-        String steamID = dataService.getSteamIDForUser(requestedUser);
+        String steamID = dataService.getSteamIDForUsername(requestedUser);
 
         if(steamID == null || steamID.isEmpty()) {
             if(StringUtils.isNumeric(requestedUser)) {
