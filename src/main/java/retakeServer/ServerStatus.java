@@ -88,6 +88,14 @@ public class ServerStatus {
         return embedBuilder;
     }
 
+    public String getCurrentMap() {
+        return currentMap;
+    }
+
+    public List<String> getPlayerNames() {
+        return playerNames;
+    }
+
     enum ServerState {
         ACTIVE("not hibernating"),
         HIBERNATING("hibernating");

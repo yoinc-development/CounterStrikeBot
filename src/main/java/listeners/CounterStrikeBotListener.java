@@ -21,7 +21,7 @@ public class CounterStrikeBotListener extends ListenerAdapter {
         csStatsService = new CsStatsService(properties, dataService);
         csFunService = new CsFunService(properties, dataService);
         retakeService = new RetakeService(properties, dataService);
-        discordService = new DiscordService(properties, dataService);
+        discordService = new DiscordService(properties, dataService, retakeService);
     }
 
     @Override

@@ -22,6 +22,8 @@ public class DataService {
         preparedStatement.executeUpdate();
         preparedStatement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS wow (wow_id INT AUTO_INCREMENT, f_user_id INT NOT NULL, url VARCHAR(200) NOT NULL, PRIMARY KEY(wow_id), FOREIGN KEY (f_user_id) REFERENCES users(user_id));");
         preparedStatement.executeUpdate();
+        preparedStatement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS retake_watchdog (msg_id VARCHAR(250), time_stamp TIMESTAMP, has_sent_invite BOOL, PRIMARY KEY (msg_id));");
+        preparedStatement.executeUpdate();
     }
 
     public String getSteamIDForUsername(String requestedUser) throws SQLException {
@@ -121,6 +123,35 @@ public class DataService {
             return resultSet.getInt(1);
         }
         throw new SQLException("No userID can be returned");
+    }
+
+    public boolean hasSentRetakeInvite() throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM retake_watchdog");
+        ResultSet resultSet = preparedStatement.executeQuery();
+        return resultSet.next() && resultSet.getBoolean("has_sent_invite");
+    }
+
+    public String getRetakeInviteMsgId() throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM retake_watchdog WHERE has_sent_invite = 1");
+        ResultSet resultSet = preparedStatement.executeQuery();
+        return resultSet.next() ? resultSet.getString("msg_id") : "";
+    }
+
+    public void addRetakeInvite(String msg_id, String timestamp) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO retake_watchdog VALUES (?,?,1)");
+        preparedStatement.setString(1, msg_id);
+        preparedStatement.setString(2, timestamp);
+        preparedStatement.executeUpdate();
+    }
+
+    public void removeRetakeInvite() throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT COUNT(*) FROM retake_watchdog");
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        if (resultSet.next() && resultSet.getInt(1) != 0) {
+            preparedStatement = connection.prepareStatement("DELETE FROM retake_watchdog WHERE has_sent_invite = 1");
+            preparedStatement.executeUpdate();
+        }
     }
 
     private RankStats mapRowToRankStats(ResultSet resultSet) throws SQLException {

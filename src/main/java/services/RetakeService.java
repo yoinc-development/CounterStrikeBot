@@ -87,15 +87,23 @@ public class RetakeService {
 
     public EmbedBuilder handleStatusEvent(SlashCommandInteractionEvent event, String locale) {
         resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
+        ServerStatus serverStatus = getServerStatus();
+        if (serverStatus != null) {
+            EmbedBuilder statusMessage = serverStatus.getStatusMessage(resourceBundle);
+            return messageService.sendEmbedMessageInCorrectChannel(event, statusMessage, locale);
+        } else {
+            return ServerStatus.getInactiveStatusMessage(resourceBundle);
+        }
+    }
+
+    public ServerStatus getServerStatus() {
         try {
             Rcon rcon = new Rcon(serverIp, serverPort, serverPassword.getBytes());
             String status = rcon.command("status");
-            ServerStatus serverStatus = new ServerStatus(status);
             rcon.disconnect();
-            EmbedBuilder statusMessage = serverStatus.getStatusMessage(resourceBundle);
-            return messageService.sendEmbedMessageInCorrectChannel(event, statusMessage, locale);
+            return new ServerStatus(status);
         } catch (AuthenticationException | IOException e) {
-            return ServerStatus.getInactiveStatusMessage(resourceBundle);
+            return null;
         }
     }
 }
