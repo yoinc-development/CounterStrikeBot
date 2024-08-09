@@ -91,20 +91,18 @@ public class DiscordService {
     private void runJoinTask() {
         try {
             ServerStatus serverStatus = retakeService.getServerStatus();
-            if (serverStatus != null) {
-                if (!serverStatus.getPlayerNames().isEmpty()) {
-                    if (!dataService.hasSentRetakeInvite()) {
-                        EmbedBuilder embedBuilder = RetakeWatchdog.getJoinMessage(resourceBundle, getRandomPlayer(serverStatus), serverStatus.getCurrentMap());
-                        ItemComponent button = Button.link(properties.getProperty("server.connectLink"), resourceBundle.getString("serverwatchdog.invite"));
-                        String messageId = messageService.sendBotEmbedMessageWithAction(jda, embedBuilder, button);
-                        dataService.addRetakeInvite(messageId, new Timestamp(System.currentTimeMillis()).toString());
-                    }
-                } else {
-                    if (dataService.hasSentRetakeInvite()) {
-                        String messageId = dataService.getRetakeInviteMsgId();
-                        messageService.removeBotMessage(jda, messageId);
-                        dataService.removeRetakeInvite();
-                    }
+            if (serverStatus != null && !serverStatus.getPlayerNames().isEmpty()) {
+                if (!dataService.hasSentRetakeInvite()) {
+                    EmbedBuilder embedBuilder = RetakeWatchdog.getJoinMessage(resourceBundle, getRandomPlayer(serverStatus), serverStatus.getCurrentMap());
+                    ItemComponent button = Button.link(properties.getProperty("server.connectLink"), resourceBundle.getString("serverwatchdog.invite"));
+                    String messageId = messageService.sendBotEmbedMessageWithAction(jda, embedBuilder, button);
+                    dataService.addRetakeInvite(messageId, new Timestamp(System.currentTimeMillis()).toString());
+                }
+            } else {
+                if (dataService.hasSentRetakeInvite()) {
+                    String messageId = dataService.getRetakeInviteMsgId();
+                    messageService.removeBotMessage(jda, messageId);
+                    dataService.removeRetakeInvite();
                 }
             }
         } catch (SQLException ex) {
