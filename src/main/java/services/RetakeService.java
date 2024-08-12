@@ -51,23 +51,23 @@ public class RetakeService {
                     if (endTime == null || currentTime.isAfter(endTime)) {
                         rcon.command("changelevel " + event.getOption("map").getAsString());
                         endTime = LocalTime.now().plusSeconds(delay);
-                        return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("map.changed").replace("%s", event.getOption("map").getAsString()));
+                        return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("map.changed").replace("%s", event.getOption("map").getAsString()), locale);
                     } else {
                         int missingTime = endTime.toSecondOfDay() - currentTime.toSecondOfDay();
-                        return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("map.cooldown").replace("%s", String.valueOf(missingTime)));
+                        return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("map.cooldown").replace("%s", String.valueOf(missingTime)), locale);
                     }
                 } else {
-                    return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.invalidmap"));
+                    return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.invalidmap"), locale);
                 }
             } else {
-                return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.mapnotallowed"));
+                return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.mapnotallowed"), locale);
             }
         } catch (AuthenticationException ex) {
             System.out.println("AuthenticationException thrown: " + ex.getMessage());
-            return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.majorerror"));
+            return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.majorerror"), locale);
         } catch (IOException ex) {
             System.out.println("IOException thrown: " + ex.getMessage());
-            return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.majorerror"));
+            return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.majorerror"), locale);
         }
     }
 
@@ -77,10 +77,12 @@ public class RetakeService {
         try {
             RankStats rankStats = dataService.getRanksStatsForUsername(user.getName());
             if (rankStats != null) {
-                return RankStats.getRankStatsMessage(resourceBundle, rankStats);
+                return messageService.sendEmbedMessageInCorrectChannel(event, RankStats.getRankStatsMessage(resourceBundle, rankStats), locale);
             }
         } catch (SQLException ex) {
             System.out.println("SQLException thrown: " + ex.getMessage());
+        } catch (NumberFormatException ex) {
+            System.out.println("NumberFormatException thrown: " + ex.getMessage());
         }
         return new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror"));
     }

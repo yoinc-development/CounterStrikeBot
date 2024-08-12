@@ -37,7 +37,9 @@ public class MessageService {
     }
 
 
-    public String sendMessageInCorrectChannel(GenericCommandInteractionEvent event, String message) {
+    public String sendMessageInCorrectChannel(GenericCommandInteractionEvent event, String message, String locale) {
+        resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
+
         if(event.getGuild().getId().equals(properties.getProperty("discord.thisIsMyHome"))) {
             if(!event.getMessageChannel().getId().equals(HOME_CHANNEL)) {
                 event.getHook().getInteraction().getGuild().getTextChannelById(HOME_CHANNEL).sendMessage(message).queue();
