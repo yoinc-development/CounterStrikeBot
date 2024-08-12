@@ -35,11 +35,11 @@ public class CsFunService {
 
         if (wowList.containsKey(targetUserName)) {
             String message = resourceBundle.getString("wow.highlightMessage").replace("%s", targetUserName) + " " + wowList.get(targetUserName);
-            return messageService.sendMessageInCorrectChannel(event, message);
+            return messageService.sendMessageInCorrectChannel(event, message, locale);
         } else if (targetUser.isBot()) {
-            return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.cantwowabot"));
+            return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.cantwowabot"), locale);
         } else {
-            return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.hasnowow"));
+            return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.hasnowow"), locale);
         }
     }
 
@@ -115,7 +115,7 @@ public class CsFunService {
     private void setupWowList() {
         wowList = new HashMap<String, String>();
         try {
-            wowList = dataService.getAllWowEntries();
+            wowList.putAll(dataService.getAllWowEntries());
         } catch (SQLException ex) {
             System.out.println("SQLException thrown: " + ex.getMessage());
         }

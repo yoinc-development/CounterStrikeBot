@@ -53,13 +53,26 @@ public class DataService {
 
     public void addUserToDatabase(String username, String discordID) {
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO users(username, discordID) VALUES(?,?)");
-            preparedStatement.setString(1, username);
-            preparedStatement.setString(2, discordID);
-            preparedStatement.executeUpdate();
+            if(!isUsernameInDatabase(username)) {
+                PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO users(username, discordID) VALUES(?,?)");
+                preparedStatement.setString(1, username);
+                preparedStatement.setString(2, discordID);
+                preparedStatement.executeUpdate();
+            }
         } catch (SQLException ex) {
             System.out.println("Can't add " + username + " with discordID " + discordID);
         }
+    }
+
+    private boolean isUsernameInDatabase(String username) throws SQLException{
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT u.username FROM users AS u WHERE u.username = ?");
+        preparedStatement.setString(1, username);
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        while (resultSet.next()) {
+            return true;
+        }
+        return false;
     }
 
     public String getUsernameForFaceitID(String faceitID) throws SQLException {
@@ -84,7 +97,7 @@ public class DataService {
         return returnMap;
     }
 
-    public RankStats getRanksStatsForUsername(String username) throws SQLException {
+    public RankStats getRanksStatsForUsername(String username) throws SQLException, NumberFormatException {
         String steamId64 = getSteamIDForUsername(username);
         String steamId = SteamUIDConverter.getSteamId(Long.parseLong(steamId64));
 
