@@ -1,31 +1,33 @@
 package listeners;
 
-import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
+import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import services.CsFunService;
-import services.CsStatsService;
-import services.RetakeService;
+import services.*;
 
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
 
 public class CounterStrikeBotListener extends ListenerAdapter {
 
     private CsStatsService csStatsService;
     private RetakeService retakeService;
     private CsFunService csFunService;
+    private DiscordService discordService;
 
-    public CounterStrikeBotListener(Properties properties) {
-        csStatsService = new CsStatsService(properties);
-        csFunService = new CsFunService(properties);
-        retakeService = new RetakeService(properties);
+    public CounterStrikeBotListener(Properties properties, DataService dataService) {
+        csStatsService = new CsStatsService(properties, dataService);
+        csFunService = new CsFunService(properties, dataService);
+        retakeService = new RetakeService(properties, dataService);
+        discordService = new DiscordService(properties, dataService, retakeService);
     }
 
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
 
-        String locale = getUserLocale(event);
+        String locale = discordService.getUserLocale(event);
 
         if ("stats".equals(event.getName())) {
             event.deferReply().queue();
@@ -46,6 +48,16 @@ public class CounterStrikeBotListener extends ListenerAdapter {
             event.deferReply().queue();
             event.getHook().sendMessage(csFunService.handleAddWowEvent(event, locale)).queue();
         }
+
+        if("teams".equals(event.getName())) {
+            event.deferReply().queue();
+            event.getHook().sendMessageEmbeds(csFunService.handleSetTeamsEvent(event, locale).build()).queue();
+        }
+
+        if("status".equals(event.getName())) {
+            event.deferReply().queue();
+            event.getHook().sendMessageEmbeds(retakeService.handleStatusEvent(event, locale).build()).queue();
+        }
     }
 
     @Override
@@ -58,36 +70,21 @@ public class CounterStrikeBotListener extends ListenerAdapter {
         language of the enacting user. as a "neutral" locale the guild could be used
         (event.getGuild().getLocale()) but it could result in the same problem.
          */
-        String locale = getUserLocale(event);
+        String locale = discordService.getUserLocale(event);
 
         if("wow".equals(event.getName())) {
             event.deferReply().queue();
             event.getHook().sendMessage(csFunService.handleWowEvent(event, locale)).queue();
         }
-
-    }
-
-    private String getUserLocale(GenericCommandInteractionEvent event) {
-        String locale = "en";
-        if(event.getInteraction().getUserLocale().getLocale().equals("de")) {
-            locale = "de";
+        if("retake stats".equals(event.getName())){
+            event.deferReply().queue();
+            event.getHook().sendMessageEmbeds(retakeService.handleStatsEvent(event, locale).build()).queue();
         }
-        return locale;
     }
 
-    public CsStatsService getCsStatsService() {
-        return csStatsService;
-    }
-
-    public void setCsStatsService(CsStatsService csStatsService) {
-        this.csStatsService = csStatsService;
-    }
-
-    public RetakeService getRetakeService() {
-        return retakeService;
-    }
-
-    public void setRetakeService(RetakeService retakeService) {
-        this.retakeService = retakeService;
+    @Override
+    public void onReady(ReadyEvent event){
+        JDA jda = event.getJDA();
+        CompletableFuture.runAsync( () -> discordService.scheduleAllTasks(jda));
     }
 }

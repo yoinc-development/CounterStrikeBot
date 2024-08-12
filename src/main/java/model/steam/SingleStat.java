@@ -1,4 +1,4 @@
-package model;
+package model.steam;
 
 public class SingleStat {
 
