@@ -17,11 +17,11 @@ public class CounterStrikeBotListener extends ListenerAdapter {
     private CsFunService csFunService;
     private DiscordService discordService;
 
-    public CounterStrikeBotListener(Properties properties, DataService dataService) {
+    public CounterStrikeBotListener(Properties properties, DataService dataService, MessageService messageService) {
         csStatsService = new CsStatsService(properties, dataService);
-        csFunService = new CsFunService(properties, dataService);
-        retakeService = new RetakeService(properties, dataService);
-        discordService = new DiscordService(properties, dataService, retakeService);
+        csFunService = new CsFunService(dataService, messageService);
+        retakeService = new RetakeService(properties, dataService, messageService);
+        discordService = new DiscordService(properties, dataService, retakeService, messageService);
     }
 
     @Override

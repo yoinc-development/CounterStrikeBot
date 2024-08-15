@@ -1,7 +1,8 @@
 package services;
 
+import model.retake.RetakePlayer;
 import model.steam.SteamUIDConverter;
-import retakeServer.RankStats;
+import model.retake.RankStats;
 
 import java.sql.*;
 import java.util.HashMap;
@@ -109,7 +110,6 @@ public class DataService {
             return mapRowToRankStats(resultSet);
         }
         return null;
-
     }
 
     private int getUserIDForUsername(String username) throws SQLException {
@@ -167,6 +167,18 @@ public class DataService {
         }
     }
 
+    public RetakePlayer getHighestRetakeScoreAndPlayer() throws  SQLException {
+        RetakePlayer retakePlayer = null;
+
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT l.name, l.value FROM lvl_base as l WHERE l.value in (SELECT MAX(value) FROM lvl_base)");
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        while (resultSet.next()) {
+            retakePlayer = new RetakePlayer(resultSet.getString("l.name"), resultSet.getInt("l.value"));
+        }
+        return retakePlayer;
+    }
+
     private RankStats mapRowToRankStats(ResultSet resultSet) throws SQLException {
         String name = resultSet.getString("name");
         int experience = resultSet.getInt("value");
@@ -186,6 +198,4 @@ public class DataService {
                 headshots, assists, roundWin, roundLose, playtime, lastConnect);
 
     }
-
-
 }

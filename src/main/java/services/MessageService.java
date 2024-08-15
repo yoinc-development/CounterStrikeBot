@@ -1,11 +1,15 @@
 package services;
 
+import http.ConnectionBuilder;
+import model.retake.RetakePlayer;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 
+import java.io.IOException;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.ResourceBundle;
@@ -15,9 +19,25 @@ public class MessageService {
     ResourceBundle resourceBundle;
     Properties properties;
     String HOME_CHANNEL = "901976174484418600";
+    ConnectionBuilder connectionBuilder;
 
     public MessageService(Properties properties) {
         this.properties = properties;
+        this.connectionBuilder = new ConnectionBuilder(properties);
+    }
+
+    public void sendAssistantMessageRetake(RetakePlayer retakePlayer, JDA jda) {
+        Guild homeGuild = jda.getGuildById(properties.getProperty("discord.thisIsMyHome"));
+        TextChannel textChannel = homeGuild.getTextChannelById(HOME_CHANNEL);
+        try {
+            textChannel.sendMessage(connectionBuilder.fetchAssistantRetakeMessage(retakePlayer)).queue();
+        } catch (InterruptedException ex) {
+            System.out.println("InterruptedException thrown: " + ex);
+            //TODO send localized message instead of assistant message
+        } catch (IOException ex) {
+            System.out.println("IOException thrown: " + ex);
+            //TODO send localized message instead of assistant message
+        }
     }
 
 

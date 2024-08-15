@@ -6,7 +6,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
 import net.kronos.rkon.core.Rcon;
 import net.kronos.rkon.core.ex.AuthenticationException;
-import retakeServer.RankStats;
+import model.retake.RankStats;
 import retakeServer.ServerStatus;
 
 import java.io.IOException;
@@ -27,7 +27,7 @@ public class RetakeService {
     private DataService dataService;
     MessageService messageService;
 
-    public RetakeService(Properties properties, DataService dataService) {
+    public RetakeService(Properties properties, DataService dataService, MessageService messageService) {
         this.allowedRoleId = properties.getProperty("discord.allowedRoleId");
         this.serverIp = properties.getProperty("server.ip");
         this.serverPort = Integer.parseInt(properties.getProperty("server.port"));
@@ -35,7 +35,7 @@ public class RetakeService {
         this.delay = Integer.parseInt(properties.getProperty("server.delay"));
         this.allowedMaps = properties.getProperty("csgo.maps");
         this.dataService = dataService;
-        messageService = new MessageService(properties);
+        this.messageService = messageService;
     }
 
     public String handleMapEvent(SlashCommandInteractionEvent event, String locale) {

@@ -1,4 +1,4 @@
-package retakeServer;
+package model.retake;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;

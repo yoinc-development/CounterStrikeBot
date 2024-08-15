@@ -2,6 +2,7 @@ package http;
 
 import com.google.gson.*;
 import model.faceit.FaceitMatch;
+import model.retake.RetakePlayer;
 import model.steam.ResponseData;
 
 import java.io.IOException;
@@ -17,6 +18,10 @@ public class ConnectionBuilder {
 
     public ConnectionBuilder(Properties properties) {
         this.properties = properties;
+    }
+
+    public String fetchAssistantRetakeMessage(RetakePlayer retakePlayer) throws InterruptedException, IOException {
+        return null;
     }
 
     public ResponseData fetchSteamUserStats(String steamID) throws InterruptedException, IOException {

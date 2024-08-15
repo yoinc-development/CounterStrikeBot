@@ -1,5 +1,6 @@
 package services;
 
+import model.retake.RetakePlayer;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
@@ -25,12 +26,11 @@ public class DiscordService {
     ResourceBundle resourceBundle;
     MessageService messageService;
 
-    public DiscordService(Properties properties, DataService dataService, RetakeService retakeService) {
+    public DiscordService(Properties properties, DataService dataService, RetakeService retakeService, MessageService messageService) {
         this.properties = properties;
         this.dataService = dataService;
         this.retakeService = retakeService;
         this.resourceBundle = ResourceBundle.getBundle("localization", new Locale("en"));
-        this.messageService = new MessageService(properties);
     }
 
     public String getUserLocale(GenericCommandInteractionEvent event) {
@@ -63,16 +63,13 @@ public class DiscordService {
         TimerTask joinTask = new TimerTask() {
             @Override
             public void run() {
-                System.out.println("Join Task started at " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")));
                 runJoinTask();
-                System.out.println("Join Task finished at " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")));
             }
         };
 
-        //TODO set this to daily, not hourly
-        Timer timer = new Timer("Daily Collection Timer");
+        Timer timer = new Timer("Discord Service Tasks");
         long delay = 0L;
-        timer.schedule(collectionTask, delay, 3600000L);
+        timer.schedule(collectionTask, delay, 86400000L);
         timer.schedule(joinTask, delay, 300000L);
     }
 
@@ -105,6 +102,15 @@ public class DiscordService {
                     dataService.removeRetakeInvite();
                 }
             }
+        } catch (SQLException ex) {
+            System.out.println("SQLException thrown: " + ex.getMessage());
+        }
+    }
+
+    private void runRetakeWinnerTask() {
+        try {
+            RetakePlayer retakePlayer = dataService.getHighestRetakeScoreAndPlayer();
+            messageService.sendAssistantMessageRetake(retakePlayer, jda);
         } catch (SQLException ex) {
             System.out.println("SQLException thrown: " + ex.getMessage());
         }
