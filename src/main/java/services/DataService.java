@@ -76,6 +76,13 @@ public class DataService {
         preparedStatement.executeUpdate();
     }
 
+    public void updateGregflixEntry(String imdbID) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement("UPDATE gregflix SET uploaded = ? WHERE imdbid = ?");
+        preparedStatement.setBoolean(1, true);
+        preparedStatement.setString(2, imdbID);
+        preparedStatement.executeUpdate();
+    }
+
     public boolean hasGregflix(String username, String discordID) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM users AS u WHERE u.username = ? AND u.discordID = ?");
         preparedStatement.setString(1, username);

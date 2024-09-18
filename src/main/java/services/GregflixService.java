@@ -93,6 +93,7 @@ public class GregflixService {
                 messageReactionAddEvent.getChannel().retrieveMessageById(messageReactionAddEvent.getMessageId()).queue((message -> {
                     try {
                         String[] splitMessage = message.getContentDisplay().split("--");
+                        dataService.updateGregflixEntry(splitMessage[2]);
                         messageService.sendPrivateMessageToUser(messageReactionAddEvent.getJDA(), resourceBundle.getString("gregflix.requestedDone").replace("%s", splitMessage[1]), dataService.getDiscordIdForUsername(splitMessage[0]));
                     } catch (SQLException ex) {
                         messageReactionAddEvent.getChannel().sendMessage("error in sending private message").queue();
