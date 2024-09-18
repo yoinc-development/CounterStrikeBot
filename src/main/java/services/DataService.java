@@ -4,6 +4,7 @@ import model.omdb.OMDBMovieResponse;
 import model.retake.RetakePlayer;
 import model.steam.SteamUIDConverter;
 import model.retake.RankStats;
+import org.codehaus.plexus.util.StringUtils;
 
 import java.sql.*;
 import java.util.HashMap;
@@ -45,16 +46,20 @@ public class DataService {
         ResultSet resultSet = preparedStatement.executeQuery();
 
         while (resultSet.next()) {
+            if(StringUtils.isEmpty(resultSet.getString("title"))) {
+                preparedStatement = connection.prepareStatement("INSERT INTO gregflix(title) VALUES(?) WHERE imdbid = ?");
+                preparedStatement.setString(1, omdbMovieResponse.getTitle());
+                preparedStatement.setString(2, omdbMovieResponse.getImdbID());
+                preparedStatement.executeQuery();
+            }
             return true;
         }
-        addGregflixEntry(omdbMovieResponse);
         return false;
     }
 
-    private void addGregflixEntry(OMDBMovieResponse omdbMovieResponse) throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO gregflix(title, imdbid) VALUES(?,?)");
-        preparedStatement.setString(1, omdbMovieResponse.getTitle());
-        preparedStatement.setString(2, omdbMovieResponse.getImdbID());
+    public void addGregflixEntry(String imdbID) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO gregflix(title, imdbid) VALUES('',?)");
+        preparedStatement.setString(1, imdbID);
         preparedStatement.executeUpdate();
     }
 

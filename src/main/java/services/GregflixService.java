@@ -30,13 +30,15 @@ public class GregflixService {
 
     public String handleButtonEvent(ButtonInteractionEvent buttonInteractionEvent, String locale) {
         resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
+        String buttonId = buttonInteractionEvent.getButton().getId();
 
-        if ("falseItem".equals(buttonInteractionEvent.getButton().getId())) {
+        if ("falseItem".equals(buttonId)) {
             buttonInteractionEvent.getMessage().delete().queue();
             return resourceBundle.getString("gregflix.cancel");
         } else {
             buttonInteractionEvent.getMessage().delete().queue();
             try {
+                dataService.addGregflixEntry(buttonId.split("--")[2]);
                 messageService.contactGreg(buttonInteractionEvent.getButton().getId(), dataService.getDiscordIdForUsername("jay_th"), buttonInteractionEvent.getJDA());
                 return resourceBundle.getString("gregflix.confirm");
             } catch (SQLException ex) {
@@ -65,13 +67,13 @@ public class GregflixService {
                     embedBuilder.addField(new MessageEmbed.Field("Genre", omdbMovieResponse.getGenre(), false));
                     embedBuilder.addField(new MessageEmbed.Field("IMDB ID", omdbMovieResponse.getImdbID(), false));
                     embedBuilder.setImage(omdbMovieResponse.getPoster());
+                    messageService.sendGregflixEmbedMessage(privateChannel, embedBuilder, locale, false, omdbMovieResponse.getImdbID());
                 } else {
                     messageService.sendGregflixEmbedMessage(privateChannel, new EmbedBuilder().setTitle(resourceBundle.getString("info.movieexists")), locale, true, null);
                 }
             } else {
                 embedBuilder.setTitle(resourceBundle.getString("info.nomoviefound"));
             }
-            messageService.sendGregflixEmbedMessage(privateChannel, embedBuilder, locale, false, omdbMovieResponse.getImdbID());
         } catch (IOException ex) {
             messageService.sendGregflixEmbedMessage(privateChannel, new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror")), locale, true, null);
         } catch (InterruptedException ex) {
