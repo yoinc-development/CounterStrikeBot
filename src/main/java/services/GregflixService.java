@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -37,7 +38,7 @@ public class GregflixService {
         } else {
             buttonInteractionEvent.getMessage().delete().queue();
             try {
-                dataService.addGregflixEntry(buttonId.split("--")[2]);
+                dataService.addGregflixEntry(buttonId.split("--")[1], buttonId.split("--")[2]);
                 messageService.contactGreg(buttonInteractionEvent.getButton().getId(), dataService.getDiscordIdForUsername("jay_th"), buttonInteractionEvent.getJDA());
                 return resourceBundle.getString("gregflix.confirm");
             } catch (SQLException ex) {
@@ -67,20 +68,39 @@ public class GregflixService {
                         embedBuilder.addField(new MessageEmbed.Field("Genre", omdbMovieResponse.getGenre(), false));
                         embedBuilder.addField(new MessageEmbed.Field("IMDB ID", omdbMovieResponse.getImdbID(), false));
                         embedBuilder.setImage(omdbMovieResponse.getPoster());
-                        messageService.sendGregflixEmbedMessage(privateChannel, embedBuilder, locale, false, omdbMovieResponse.getImdbID());
+                        messageService.sendGregflixEmbedMessage(privateChannel, embedBuilder, locale, false, omdbMovieResponse.getTitle(), omdbMovieResponse.getImdbID());
                     } else {
-                        messageService.sendGregflixEmbedMessage(privateChannel, new EmbedBuilder().setTitle(resourceBundle.getString("info.movieexists")).addField("IMDB ID", omdbMovieResponse.getImdbID(), false), locale, true, null);
+                        messageService.sendGregflixEmbedMessage(privateChannel, new EmbedBuilder().setTitle(resourceBundle.getString("info.movieexists")).addField("IMDB ID", omdbMovieResponse.getImdbID(), false), locale, true, null, null);
                     }
                 } else {
                     embedBuilder.setTitle(resourceBundle.getString("info.nomoviefound"));
                 }
             }
         } catch (IOException ex) {
-            messageService.sendGregflixEmbedMessage(privateChannel, new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror")), locale, true, null);
+            messageService.sendGregflixEmbedMessage(privateChannel, new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror")), locale, true, null, null);
         } catch (InterruptedException ex) {
-            messageService.sendGregflixEmbedMessage(privateChannel, new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror")), locale, true, null);
+            messageService.sendGregflixEmbedMessage(privateChannel, new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror")), locale, true, null, null);
         } catch (SQLException ex) {
-            messageService.sendGregflixEmbedMessage(privateChannel, new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror")), locale, true, null);
+            messageService.sendGregflixEmbedMessage(privateChannel, new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror")), locale, true, null, null);
+        }
+    }
+
+    public void handleGregflixReactionEvent(MessageReactionAddEvent messageReactionAddEvent, String locale) {
+        resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
+
+        try {
+            if (dataService.isGreg(messageReactionAddEvent.getUser().getId())) {
+                messageReactionAddEvent.getChannel().retrieveMessageById(messageReactionAddEvent.getMessageId()).queue((message -> {
+                    try {
+                        String[] splitMessage = message.getContentDisplay().split("--");
+                        messageService.sendPrivateMessageToUser(messageReactionAddEvent.getJDA(), resourceBundle.getString("gregflix.requestedDone").replace("%s", splitMessage[1]), dataService.getDiscordIdForUsername(splitMessage[0]));
+                    } catch (SQLException ex) {
+                        messageReactionAddEvent.getChannel().sendMessage("error in sending private message").queue();
+                    }
+                }));
+            }
+        } catch (SQLException ex) {
+            messageReactionAddEvent.getChannel().sendMessage("error").queue();
         }
     }
 }

@@ -43,11 +43,11 @@ public class MessageService {
         }
     }
 
-    public void sendGregflixEmbedMessage(PrivateChannel privateChannel, EmbedBuilder embedBuilder, String locale, boolean isError, String imdbID) {
+    public void sendGregflixEmbedMessage(PrivateChannel privateChannel, EmbedBuilder embedBuilder, String locale, boolean isError, String title, String imdbID) {
         resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
         embedBuilder.setAuthor(resourceBundle.getString("stats.author"), "https://www.yoinc.ch");
         if(!isError) {
-            ItemComponent correctItem = Button.success("correctItem--" + privateChannel.getUser().getName() + "--" + imdbID, Emoji.fromUnicode("\u2714"));
+            ItemComponent correctItem = Button.success(privateChannel.getUser().getName() + "--" + title + "--"+ imdbID, Emoji.fromUnicode("\u2714"));
             ItemComponent falseItem = Button.danger("falseItem", Emoji.fromUnicode("\u2716"));
             privateChannel.sendMessageEmbeds(embedBuilder.build()).addActionRow(correctItem, falseItem).queue();
         } else {
@@ -87,6 +87,12 @@ public class MessageService {
             }
         }
         return message;
+    }
+
+    public void sendPrivateMessageToUser(JDA jda, String message, String discordID) {
+        jda.getUserById(discordID).openPrivateChannel().queue((privateChannel -> {
+            privateChannel.sendMessage(message).queue();
+        }));
     }
 
     public String sendBotEmbedMessageWithAction(JDA jda, EmbedBuilder embedBuilder, ItemComponent itemComponent) {

@@ -57,9 +57,20 @@ public class DataService {
         return false;
     }
 
-    public void addGregflixEntry(String imdbID) throws SQLException {
+    public boolean isGreg(String discordID) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM users AS u WHERE u.discordId = ?");
+        preparedStatement.setString(1, discordID);
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        while (resultSet.next()) {
+            return true;
+        }
+        return false;
+    }
+
+    public void addGregflixEntry(String title, String imdbID) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO gregflix(title, imdbid, uploaded) VALUES(?,?,?)");
-        preparedStatement.setString(1, "");
+        preparedStatement.setString(1, title);
         preparedStatement.setString(2, imdbID);
         preparedStatement.setBoolean(3, false);
         preparedStatement.executeUpdate();

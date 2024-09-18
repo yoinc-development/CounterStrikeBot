@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import services.*;
@@ -111,7 +112,21 @@ public class CounterStrikeBotListener extends ListenerAdapter {
     @Override
     public void onButtonInteraction(ButtonInteractionEvent buttonInteractionEvent) {
         String locale = "en";
-
         buttonInteractionEvent.getMessageChannel().sendMessage(gregflixService.handleButtonEvent(buttonInteractionEvent, locale)).queue();
+    }
+
+    @Override
+    public void onMessageReactionAdd(MessageReactionAddEvent messageReactionAddEvent) {
+        String locale = "en";
+
+        if(messageReactionAddEvent.getChannel().getType().equals(ChannelType.PRIVATE)) {
+            if(!messageReactionAddEvent.getUser().isBot()) {
+                messageReactionAddEvent.retrieveMessage().queue((message -> {
+                    if(message.getAuthor().isBot() && message.getContentDisplay().matches("[^\\n]+?--[^\\n]+?--[^\\n]+?")) {
+                        gregflixService.handleGregflixReactionEvent(messageReactionAddEvent, locale);
+                    }
+                }));
+            }
+        }
     }
 }
