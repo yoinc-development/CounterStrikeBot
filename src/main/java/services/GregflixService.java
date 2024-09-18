@@ -50,28 +50,30 @@ public class GregflixService {
         resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
 
         try {
-            OMDBMovieResponse omdbMovieResponse = connectionBuilder.fetchMovieDetails(event.getMessage().getContentDisplay());
-            EmbedBuilder embedBuilder = new EmbedBuilder();
+            if(dataService.hasGregflix(privateChannel.getUser().getName(), privateChannel.getUser().getId())) {
+                OMDBMovieResponse omdbMovieResponse = connectionBuilder.fetchMovieDetails(event.getMessage().getContentDisplay());
+                EmbedBuilder embedBuilder = new EmbedBuilder();
 
-            if ("True".equals(omdbMovieResponse.getResponse())) {
-                if (!dataService.doesGregflixEntryExist(omdbMovieResponse)) {
-                    embedBuilder.setTitle(omdbMovieResponse.getTitle());
-                    embedBuilder.setDescription(resourceBundle.getString("gregflix.description"));
-                    embedBuilder.addField(new MessageEmbed.Field("Type", omdbMovieResponse.getType(), true));
-                    if ("series".equals(omdbMovieResponse.getType())) {
-                        embedBuilder.addField(new MessageEmbed.Field("Total Seasons", Integer.toString(omdbMovieResponse.getTotalSeasons()), false));
+                if ("True".equals(omdbMovieResponse.getResponse())) {
+                    if (!dataService.doesGregflixEntryExist(omdbMovieResponse)) {
+                        embedBuilder.setTitle(omdbMovieResponse.getTitle());
+                        embedBuilder.setDescription(resourceBundle.getString("gregflix.description"));
+                        embedBuilder.addField(new MessageEmbed.Field("Type", omdbMovieResponse.getType(), true));
+                        if ("series".equals(omdbMovieResponse.getType())) {
+                            embedBuilder.addField(new MessageEmbed.Field("Total Seasons", Integer.toString(omdbMovieResponse.getTotalSeasons()), false));
+                        } else {
+                            embedBuilder.addField(new MessageEmbed.Field("Runtime", omdbMovieResponse.getRuntime(), false));
+                        }
+                        embedBuilder.addField(new MessageEmbed.Field("Genre", omdbMovieResponse.getGenre(), false));
+                        embedBuilder.addField(new MessageEmbed.Field("IMDB ID", omdbMovieResponse.getImdbID(), false));
+                        embedBuilder.setImage(omdbMovieResponse.getPoster());
+                        messageService.sendGregflixEmbedMessage(privateChannel, embedBuilder, locale, false, omdbMovieResponse.getImdbID());
                     } else {
-                        embedBuilder.addField(new MessageEmbed.Field("Runtime", omdbMovieResponse.getRuntime(), false));
+                        messageService.sendGregflixEmbedMessage(privateChannel, new EmbedBuilder().setTitle(resourceBundle.getString("info.movieexists")).addField("IMDB ID", omdbMovieResponse.getImdbID(), false), locale, true, null);
                     }
-                    embedBuilder.addField(new MessageEmbed.Field("Genre", omdbMovieResponse.getGenre(), false));
-                    embedBuilder.addField(new MessageEmbed.Field("IMDB ID", omdbMovieResponse.getImdbID(), false));
-                    embedBuilder.setImage(omdbMovieResponse.getPoster());
-                    messageService.sendGregflixEmbedMessage(privateChannel, embedBuilder, locale, false, omdbMovieResponse.getImdbID());
                 } else {
-                    messageService.sendGregflixEmbedMessage(privateChannel, new EmbedBuilder().setTitle(resourceBundle.getString("info.movieexists")).addField("IMDB ID",omdbMovieResponse.getImdbID(),false), locale, true, null);
+                    embedBuilder.setTitle(resourceBundle.getString("info.nomoviefound"));
                 }
-            } else {
-                embedBuilder.setTitle(resourceBundle.getString("info.nomoviefound"));
             }
         } catch (IOException ex) {
             messageService.sendGregflixEmbedMessage(privateChannel, new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror")), locale, true, null);

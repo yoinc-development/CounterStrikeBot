@@ -65,6 +65,19 @@ public class DataService {
         preparedStatement.executeUpdate();
     }
 
+    public boolean hasGregflix(String username, String discordID) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM users AS u WHERE u.username = ? AND u.discordID = ?");
+        preparedStatement.setString(1, username);
+        preparedStatement.setString(2, discordID);
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        while (resultSet.next()) {
+            return resultSet.getBoolean("hasGregflix");
+        }
+        addUserToDatabase(username, discordID);
+        return false;
+    }
+
     public String getSteamIDForUsername(String requestedUser) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM users WHERE username = ?");
         preparedStatement.setString(1, requestedUser);
