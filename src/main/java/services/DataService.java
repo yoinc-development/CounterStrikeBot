@@ -47,10 +47,10 @@ public class DataService {
 
         while (resultSet.next()) {
             if(StringUtils.isEmpty(resultSet.getString("title"))) {
-                preparedStatement = connection.prepareStatement("INSERT INTO gregflix(title) VALUES(?) WHERE imdbid = ?");
+                preparedStatement = connection.prepareStatement("UPDATE gregflix SET title = ? WHERE imdbid = ?");
                 preparedStatement.setString(1, omdbMovieResponse.getTitle());
                 preparedStatement.setString(2, omdbMovieResponse.getImdbID());
-                preparedStatement.executeQuery();
+                preparedStatement.executeUpdate();
             }
             return true;
         }
