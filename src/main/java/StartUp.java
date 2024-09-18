@@ -56,8 +56,7 @@ public class StartUp {
                     .addEventListeners(new CounterStrikeBotListener(properties, dataService, messageService))
                     .setChunkingFilter(ChunkingFilter.ALL)
                     .setMemberCachePolicy(MemberCachePolicy.ALL)
-                    .enableIntents(GatewayIntent.GUILD_MEMBERS)
-                    .enableIntents(GatewayIntent.DIRECT_MESSAGES)
+                    .enableIntents(GatewayIntent.GUILD_MEMBERS, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.DIRECT_MESSAGES)
                     .build();
 
             jda.getPresence().setActivity(Activity.playing("YOINC.ch"));

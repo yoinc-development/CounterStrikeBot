@@ -1,5 +1,6 @@
 package services;
 
+import model.omdb.OMDBMovieResponse;
 import model.retake.RetakePlayer;
 import model.steam.SteamUIDConverter;
 import model.retake.RankStats;
@@ -24,6 +25,36 @@ public class DataService {
         preparedStatement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS wow (wow_id INT AUTO_INCREMENT, f_user_id INT NOT NULL, url VARCHAR(200) NOT NULL, PRIMARY KEY(wow_id), FOREIGN KEY (f_user_id) REFERENCES users(user_id));");
         preparedStatement.executeUpdate();
         preparedStatement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS retake_watchdog (msg_id VARCHAR(250), time_stamp TIMESTAMP, has_sent_invite BOOL, PRIMARY KEY (msg_id));");
+        preparedStatement.executeUpdate();
+    }
+
+    public String getDiscordIdForUsername(String username) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM users WHERE username = ?");
+        preparedStatement.setString(1, username);
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        while (resultSet.next()) {
+            return resultSet.getString("discordID");
+        }
+        return null;
+    }
+
+    public boolean doesGregflixEntryExist(OMDBMovieResponse omdbMovieResponse) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM gregflix AS g WHERE g.imdbid = ?");
+        preparedStatement.setString(1, omdbMovieResponse.getImdbID());
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        while (resultSet.next()) {
+            return true;
+        }
+        addGregflixEntry(omdbMovieResponse);
+        return false;
+    }
+
+    private void addGregflixEntry(OMDBMovieResponse omdbMovieResponse) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO gregflix(title, imdbid) VALUES(?,?)");
+        preparedStatement.setString(1, omdbMovieResponse.getTitle());
+        preparedStatement.setString(2, omdbMovieResponse.getImdbID());
         preparedStatement.executeUpdate();
     }
 

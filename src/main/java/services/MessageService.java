@@ -5,9 +5,12 @@ import model.retake.RetakePlayer;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 import java.io.IOException;
 import java.util.Locale;
@@ -40,6 +43,23 @@ public class MessageService {
         }
     }
 
+    public void sendGregflixEmbedMessage(PrivateChannel privateChannel, EmbedBuilder embedBuilder, String locale, boolean isError, String imdbID) {
+        resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
+        embedBuilder.setAuthor(resourceBundle.getString("stats.author"), "https://www.yoinc.ch");
+        if(!isError) {
+            ItemComponent correctItem = Button.success("correctItem--" + privateChannel.getUser().getName() + "--" + imdbID, Emoji.fromUnicode("\u2714"));
+            ItemComponent falseItem = Button.danger("falseItem", Emoji.fromUnicode("\u2716"));
+            privateChannel.sendMessageEmbeds(embedBuilder.build()).addActionRow(correctItem, falseItem).queue();
+        } else {
+            privateChannel.sendMessageEmbeds(embedBuilder.build()).queue();
+        }
+    }
+
+    public void contactGreg(String message, String discordId, JDA jda) {
+        jda.getUserById(discordId).openPrivateChannel().queue((privateChannel -> {
+            privateChannel.sendMessage(message).queue();
+        }));
+    }
 
     public EmbedBuilder sendEmbedMessageInCorrectChannel(GenericCommandInteractionEvent event, EmbedBuilder embedBuilder, String locale) {
         resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
