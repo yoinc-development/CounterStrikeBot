@@ -17,7 +17,6 @@ import java.util.ResourceBundle;
 public class GregflixService {
 
     private MessageService messageService;
-
     ConnectionBuilder connectionBuilder;
     DataService dataService;
     ResourceBundle resourceBundle;
@@ -69,7 +68,7 @@ public class GregflixService {
                     embedBuilder.setImage(omdbMovieResponse.getPoster());
                     messageService.sendGregflixEmbedMessage(privateChannel, embedBuilder, locale, false, omdbMovieResponse.getImdbID());
                 } else {
-                    messageService.sendGregflixEmbedMessage(privateChannel, new EmbedBuilder().setTitle(resourceBundle.getString("info.movieexists")), locale, true, null);
+                    messageService.sendGregflixEmbedMessage(privateChannel, new EmbedBuilder().setTitle(resourceBundle.getString("info.movieexists")).addField("IMDB ID",omdbMovieResponse.getImdbID(),false), locale, true, null);
                 }
             } else {
                 embedBuilder.setTitle(resourceBundle.getString("info.nomoviefound"));

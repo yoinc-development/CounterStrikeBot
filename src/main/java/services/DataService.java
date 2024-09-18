@@ -58,8 +58,10 @@ public class DataService {
     }
 
     public void addGregflixEntry(String imdbID) throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO gregflix(title, imdbid) VALUES('',?)");
-        preparedStatement.setString(1, imdbID);
+        PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO gregflix(title, imdbid, uploaded) VALUES(?,?,?)");
+        preparedStatement.setString(1, "");
+        preparedStatement.setString(2, imdbID);
+        preparedStatement.setBoolean(3, false);
         preparedStatement.executeUpdate();
     }
 
@@ -91,9 +93,10 @@ public class DataService {
     public void addUserToDatabase(String username, String discordID) {
         try {
             if(!isUsernameInDatabase(username)) {
-                PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO users(username, discordID) VALUES(?,?)");
+                PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO users(username, discordID, hasGregflix) VALUES(?,?,?)");
                 preparedStatement.setString(1, username);
                 preparedStatement.setString(2, discordID);
+                preparedStatement.setBoolean(3, false);
                 preparedStatement.executeUpdate();
             }
         } catch (SQLException ex) {
@@ -158,8 +161,9 @@ public class DataService {
             if (returnedRows < 1) {
                 throw new SQLException("More than one user found for the same username.");
             } else if (returnedRows == 0) {
-                preparedStatement = connection.prepareStatement("INSERT INTO users VALUES (?,'')");
+                preparedStatement = connection.prepareStatement("INSERT INTO users(username,hasGregflix) VALUES (?,?)");
                 preparedStatement.setString(1, username);
+                preparedStatement.setBoolean(2, false);
                 preparedStatement.executeUpdate();
             }
         }
