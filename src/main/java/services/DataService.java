@@ -1,5 +1,6 @@
 package services;
 
+import model.bot.GregflixEntry;
 import model.omdb.OMDBMovieResponse;
 import model.retake.RetakePlayer;
 import model.steam.SteamUIDConverter;
@@ -40,7 +41,7 @@ public class DataService {
         return null;
     }
 
-    public boolean doesGregflixEntryExist(OMDBMovieResponse omdbMovieResponse) throws SQLException {
+    public GregflixEntry getGregflixEntryForOMDBMovieResponse(OMDBMovieResponse omdbMovieResponse) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM gregflix AS g WHERE g.imdbid = ?");
         preparedStatement.setString(1, omdbMovieResponse.getImdbID());
         ResultSet resultSet = preparedStatement.executeQuery();
@@ -52,9 +53,9 @@ public class DataService {
                 preparedStatement.setString(2, omdbMovieResponse.getImdbID());
                 preparedStatement.executeUpdate();
             }
-            return true;
+            return new GregflixEntry(omdbMovieResponse.getImdbID(), omdbMovieResponse.getTitle(), resultSet.getBoolean("uploaded"));
         }
-        return false;
+        return null;
     }
 
     public boolean isGreg(String discordID) throws SQLException {
@@ -69,16 +70,31 @@ public class DataService {
     }
 
     public void addGregflixEntry(String title, String imdbID) throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO gregflix(title, imdbid, uploaded) VALUES(?,?,?)");
-        preparedStatement.setString(1, title);
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM gregflix WHERE imdbid = ?");
+        preparedStatement.setString(1, imdbID);
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        if(resultSet.next()) {
+            updateGregflixEntryToNotUploaded(imdbID);
+        } else {
+            preparedStatement = connection.prepareStatement("INSERT INTO gregflix(title, imdbid, uploaded) VALUES(?,?,?)");
+            preparedStatement.setString(1, title);
+            preparedStatement.setString(2, imdbID);
+            preparedStatement.setBoolean(3, false);
+            preparedStatement.executeUpdate();
+        }
+    }
+
+    public void updateGregflixEntryToUploaded(String imdbID) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement("UPDATE gregflix SET uploaded = ? WHERE imdbid = ?");
+        preparedStatement.setBoolean(1, true);
         preparedStatement.setString(2, imdbID);
-        preparedStatement.setBoolean(3, false);
         preparedStatement.executeUpdate();
     }
 
-    public void updateGregflixEntry(String imdbID) throws SQLException {
+    public void updateGregflixEntryToNotUploaded(String imdbID) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement("UPDATE gregflix SET uploaded = ? WHERE imdbid = ?");
-        preparedStatement.setBoolean(1, true);
+        preparedStatement.setBoolean(1, false);
         preparedStatement.setString(2, imdbID);
         preparedStatement.executeUpdate();
     }

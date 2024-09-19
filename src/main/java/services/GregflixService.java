@@ -1,6 +1,7 @@
 package services;
 
 import http.ConnectionBuilder;
+import model.bot.GregflixEntry;
 import model.omdb.OMDBMovieResponse;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -56,7 +57,8 @@ public class GregflixService {
                 EmbedBuilder embedBuilder = new EmbedBuilder();
 
                 if ("True".equals(omdbMovieResponse.getResponse())) {
-                    if (!dataService.doesGregflixEntryExist(omdbMovieResponse)) {
+                    GregflixEntry gregflixEntry = dataService.getGregflixEntryForOMDBMovieResponse(omdbMovieResponse);
+                    if (gregflixEntry == null) {
                         embedBuilder.setTitle(omdbMovieResponse.getTitle());
                         embedBuilder.setDescription(resourceBundle.getString("gregflix.description"));
                         embedBuilder.addField(new MessageEmbed.Field("Type", omdbMovieResponse.getType(), true));
@@ -70,10 +72,18 @@ public class GregflixService {
                         embedBuilder.setImage(omdbMovieResponse.getPoster());
                         messageService.sendGregflixEmbedMessage(privateChannel, embedBuilder, locale, false, omdbMovieResponse.getTitle(), omdbMovieResponse.getImdbID());
                     } else {
-                        messageService.sendGregflixEmbedMessage(privateChannel, new EmbedBuilder().setTitle(resourceBundle.getString("info.movieexists")).addField("IMDB ID", omdbMovieResponse.getImdbID(), false), locale, true, null, null);
+                        if("series".equals(omdbMovieResponse.getType())) {
+                            if(!gregflixEntry.isUploaded()) {
+                                messageService.sendGregflixEmbedMessage(privateChannel, new EmbedBuilder().setTitle(resourceBundle.getString("info.showrequested")).addField("IMDB ID", omdbMovieResponse.getImdbID(), false), locale, true, null, null);
+                            } else {
+                                messageService.sendGregflixEmbedMessage(privateChannel, new EmbedBuilder().setTitle(resourceBundle.getString("info.showexists")).setDescription(resourceBundle.getString("info.showexists.description")).addField("IMDB ID", omdbMovieResponse.getImdbID(), false), locale, true, omdbMovieResponse.getTitle(), omdbMovieResponse.getImdbID());
+                            }
+                        } else {
+                            messageService.sendGregflixEmbedMessage(privateChannel, new EmbedBuilder().setTitle(resourceBundle.getString("info.movieexists")).addField("IMDB ID", omdbMovieResponse.getImdbID(), false), locale, true, null, null);
+                        }
                     }
                 } else {
-                    embedBuilder.setTitle(resourceBundle.getString("info.nomoviefound"));
+                    messageService.sendGregflixEmbedMessage(privateChannel, new EmbedBuilder().setTitle(resourceBundle.getString("info.nomoviefound")), locale, true, null, null);
                 }
             }
         } catch (IOException ex) {
@@ -93,7 +103,7 @@ public class GregflixService {
                 messageReactionAddEvent.getChannel().retrieveMessageById(messageReactionAddEvent.getMessageId()).queue((message -> {
                     try {
                         String[] splitMessage = message.getContentDisplay().split("--");
-                        dataService.updateGregflixEntry(splitMessage[2]);
+                        dataService.updateGregflixEntryToUploaded(splitMessage[2]);
                         messageService.sendPrivateMessageToUser(messageReactionAddEvent.getJDA(), resourceBundle.getString("gregflix.requestedDone").replace("%s", splitMessage[1]), dataService.getDiscordIdForUsername(splitMessage[0]));
                     } catch (SQLException ex) {
                         messageReactionAddEvent.getChannel().sendMessage("error in sending private message").queue();
