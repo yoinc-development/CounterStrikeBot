@@ -1,6 +1,7 @@
 package services;
 
 import http.ConnectionBuilder;
+import model.omdb.OMDBMovieResponse;
 import model.retake.RetakePlayer;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
@@ -11,7 +12,6 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import org.apache.maven.shared.utils.StringUtils;
 
 import java.io.IOException;
 import java.util.Locale;
@@ -44,14 +44,16 @@ public class MessageService {
         }
     }
 
-    public void sendGregflixEmbedMessage(PrivateChannel privateChannel, EmbedBuilder embedBuilder, String locale, boolean isError, String title, String imdbID) {
+    public void sendGregflixEmbedMessage(PrivateChannel privateChannel, EmbedBuilder embedBuilder, String locale, boolean isError, OMDBMovieResponse omdbMovieResponse) {
         resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
         embedBuilder.setAuthor(resourceBundle.getString("stats.author"), "https://www.yoinc.ch");
-        ItemComponent correctItem = Button.success(privateChannel.getUser().getName() + "--" + title + "--"+ imdbID, Emoji.fromUnicode("\u2714"));
+        ItemComponent correctItem;
         ItemComponent falseItem = Button.danger("falseItem", Emoji.fromUnicode("\u2716"));
         if(!isError) {
+            correctItem = Button.success(privateChannel.getUser().getName() + "--" + omdbMovieResponse.getTitle() + "--" + omdbMovieResponse.getType() + "--" + omdbMovieResponse.getImdbID(), Emoji.fromUnicode("\u2714"));
             privateChannel.sendMessageEmbeds(embedBuilder.build()).addActionRow(correctItem, falseItem).queue();
-        } else if(StringUtils.isNotEmpty(title) && StringUtils.isNotEmpty(imdbID)){
+        } else if(omdbMovieResponse != null){
+            correctItem = Button.success(privateChannel.getUser().getName() + "--" + omdbMovieResponse.getTitle() + "--" + omdbMovieResponse.getType() + "--" + omdbMovieResponse.getImdbID(), Emoji.fromUnicode("\u2714"));
             privateChannel.sendMessageEmbeds(embedBuilder.build()).addActionRow(correctItem, falseItem).queue();
         } else {
             privateChannel.sendMessageEmbeds(embedBuilder.build()).queue();

@@ -69,7 +69,7 @@ public class DataService {
         return false;
     }
 
-    public void addGregflixEntry(String title, String imdbID) throws SQLException {
+    public void addGregflixEntry(String title, String showType, String imdbID) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM gregflix WHERE imdbid = ?");
         preparedStatement.setString(1, imdbID);
         ResultSet resultSet = preparedStatement.executeQuery();
@@ -77,25 +77,28 @@ public class DataService {
         if(resultSet.next()) {
             updateGregflixEntryToNotUploaded(imdbID);
         } else {
-            preparedStatement = connection.prepareStatement("INSERT INTO gregflix(title, imdbid, uploaded) VALUES(?,?,?)");
+            preparedStatement = connection.prepareStatement("INSERT INTO gregflix(title, imdbid, uploaded, showType) VALUES(?,?,?,?)");
             preparedStatement.setString(1, title);
             preparedStatement.setString(2, imdbID);
             preparedStatement.setBoolean(3, false);
+            preparedStatement.setString(4, showType);
             preparedStatement.executeUpdate();
         }
     }
 
     public void updateGregflixEntryToUploaded(String imdbID) throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement("UPDATE gregflix SET uploaded = ? WHERE imdbid = ?");
+        PreparedStatement preparedStatement = connection.prepareStatement("UPDATE gregflix SET uploaded = ?, uploadedDate = ? WHERE imdbid = ?");
         preparedStatement.setBoolean(1, true);
-        preparedStatement.setString(2, imdbID);
+        preparedStatement.setDate(2, new Date(new java.util.Date().getTime()));
+        preparedStatement.setString(3, imdbID);
         preparedStatement.executeUpdate();
     }
 
     public void updateGregflixEntryToNotUploaded(String imdbID) throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement("UPDATE gregflix SET uploaded = ? WHERE imdbid = ?");
+        PreparedStatement preparedStatement = connection.prepareStatement("UPDATE gregflix SET uploaded = ?, uploadedDate = ? WHERE imdbid = ?");
         preparedStatement.setBoolean(1, false);
-        preparedStatement.setString(2, imdbID);
+        preparedStatement.setDate(2, null);
+        preparedStatement.setString(3, imdbID);
         preparedStatement.executeUpdate();
     }
 

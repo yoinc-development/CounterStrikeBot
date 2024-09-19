@@ -122,7 +122,7 @@ public class CounterStrikeBotListener extends ListenerAdapter {
         if(messageReactionAddEvent.getChannel().getType().equals(ChannelType.PRIVATE)) {
             if(!messageReactionAddEvent.getUser().isBot()) {
                 messageReactionAddEvent.retrieveMessage().queue((message -> {
-                    if(message.getAuthor().isBot() && message.getContentDisplay().matches("[^\\n]+?--[^\\n]+?--[^\\n]+?")) {
+                    if(message.getAuthor().isBot() && message.getContentDisplay().matches("[^\\n]+?--[^\\n]+?--[^\\n]+?--[^\\n]+?")) {
                         gregflixService.handleGregflixReactionEvent(messageReactionAddEvent, locale);
                     }
                 }));
