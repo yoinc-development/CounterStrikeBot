@@ -22,9 +22,9 @@ public class CsFunService {
     ResourceBundle resourceBundle;
     Map<String, String> wowList;
 
-    public CsFunService(Properties properties, DataService dataService) {
+    public CsFunService(DataService dataService, MessageService messageService) {
         this.dataService = dataService;
-        messageService = new MessageService(properties);
+        this.messageService = messageService;
         setupWowList();
     }
 
@@ -44,6 +44,8 @@ public class CsFunService {
     }
 
     public EmbedBuilder handleSetTeamsEvent(SlashCommandInteractionEvent event, String locale) {
+
+        resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
 
         List<VoiceChannel> allGuildVoiceChannels = event.getGuild().getVoiceChannels();
         List<Member> toShuffleList = new LinkedList<Member>();
@@ -97,7 +99,7 @@ public class CsFunService {
                 return resourceBundle.getString("error.invalidwow");
             }
         } catch (SQLException ex) {
-            System.out.println("SQLException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - CsStatsService] SQLException thrown: " + ex.getMessage());
             return resourceBundle.getString("error.majorerror");
         }
     }
@@ -117,7 +119,7 @@ public class CsFunService {
         try {
             wowList.putAll(dataService.getAllWowEntries());
         } catch (SQLException ex) {
-            System.out.println("SQLException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - CsStatsService] SQLException thrown: " + ex.getMessage());
         }
     }
 

@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import services.DataService;
 import services.FaceitMatchService;
+import services.MessageService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,7 +32,7 @@ public class StartUp {
         try {
 
             String startMessage = LocalDateTime.now().format(START_TIME) + " - Started application.";
-            System.out.println(startMessage);
+            System.out.println("[CSBot - StartUp] " + startMessage);
 
             InputStream inputStream = StartUp.class.getClassLoader().getResourceAsStream("config.properties");
             Properties properties = new Properties();
@@ -41,20 +42,21 @@ public class StartUp {
             //FYI: Locale.getDefault() returns locale of OS
             ResourceBundle resourceBundle = ResourceBundle.getBundle("localization", new Locale("en"));
             DataService dataService = null;
+            MessageService messageService = null;
             try {
                 dataService = new DataService(properties);
+                messageService = new MessageService(properties);
             } catch (SQLException ex) {
-                System.out.println("SQL Exception thrown: " + ex.getMessage());
+                System.out.println("[CSBot - StartUp] SQL Exception thrown: " + ex.getMessage());
             }
 
             FaceitMatchService faceitMatchService = new FaceitMatchService(properties, dataService);
 
             JDA jda = JDABuilder.createDefault(properties.getProperty("discord.apiToken"))
-                    .addEventListeners(new CounterStrikeBotListener(properties, dataService))
+                    .addEventListeners(new CounterStrikeBotListener(properties, dataService, messageService))
                     .setChunkingFilter(ChunkingFilter.ALL)
                     .setMemberCachePolicy(MemberCachePolicy.ALL)
-                    .enableIntents(GatewayIntent.GUILD_MEMBERS)
-                    .enableIntents(GatewayIntent.DIRECT_MESSAGES)
+                    .enableIntents(GatewayIntent.GUILD_MEMBERS, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.DIRECT_MESSAGES)
                     .build();
 
             jda.getPresence().setActivity(Activity.playing("YOINC.ch"));
@@ -80,9 +82,9 @@ public class StartUp {
                 return response;
             });
         } catch (InterruptedException ex) {
-            System.out.println("InterruptedException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - StartUp] InterruptedException thrown: " + ex.getMessage());
         } catch (IOException ex) {
-            System.out.println("IOException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - StartUp] IOException thrown: " + ex.getMessage());
         }
     }
 }

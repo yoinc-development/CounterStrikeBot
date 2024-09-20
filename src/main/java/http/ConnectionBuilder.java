@@ -2,13 +2,17 @@ package http;
 
 import com.google.gson.*;
 import model.faceit.FaceitMatch;
+import model.omdb.OMDBMovieResponse;
+import model.retake.RetakePlayer;
 import model.steam.ResponseData;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 public class ConnectionBuilder {
@@ -17,6 +21,10 @@ public class ConnectionBuilder {
 
     public ConnectionBuilder(Properties properties) {
         this.properties = properties;
+    }
+
+    public String fetchAssistantRetakeMessage(RetakePlayer retakePlayer) throws InterruptedException, IOException {
+        return null;
     }
 
     public ResponseData fetchSteamUserStats(String steamID) throws InterruptedException, IOException {
@@ -51,7 +59,7 @@ public class ConnectionBuilder {
         FaceitMatch responseData;
 
         request = HttpRequest.newBuilder()
-                .uri(URI.create("https://open.faceit.com/data/v4/matches/" + matchId))
+                .uri(URI.create(properties.getProperty("faceit.matchDetails.url") + matchId))
                 .header("Authorization", "Bearer " + properties.getProperty("faceit.api"))
                 .build();
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
@@ -61,12 +69,32 @@ public class ConnectionBuilder {
         return responseData;
     }
 
+    public OMDBMovieResponse fetchMovieDetails(String title) throws IOException, InterruptedException {
+        HttpClient client = HttpClient.newHttpClient();
+
+        HttpRequest request;
+        OMDBMovieResponse responseData;
+
+        request = HttpRequest.newBuilder()
+                .uri(URI.create(properties.getProperty("omdb.search.url") + prepareTitle(title) + "&apikey=" + properties.getProperty("omdb.api")))
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        responseData = new Gson().fromJson(response.body(), OMDBMovieResponse.class);
+
+        return responseData;
+    }
+
+    private String prepareTitle(String title) {
+        return URLEncoder.encode(title, StandardCharsets.UTF_8);
+    }
+
     private String fetchFaceitMatchId(HttpClient client, String userId) throws IOException, InterruptedException {
         HttpRequest request;
         String id = null;
 
         request = HttpRequest.newBuilder()
-                .uri(URI.create("https://www.faceit.com/api/match/v1/matches/groupByState?userId=" + userId))
+                .uri(URI.create(properties.getProperty("faceit.matchId.url") + userId))
                 .build();
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 

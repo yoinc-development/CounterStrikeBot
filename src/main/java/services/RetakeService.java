@@ -6,7 +6,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
 import net.kronos.rkon.core.Rcon;
 import net.kronos.rkon.core.ex.AuthenticationException;
-import retakeServer.RankStats;
+import model.retake.RankStats;
 import retakeServer.ServerStatus;
 
 import java.io.IOException;
@@ -27,7 +27,7 @@ public class RetakeService {
     private DataService dataService;
     MessageService messageService;
 
-    public RetakeService(Properties properties, DataService dataService) {
+    public RetakeService(Properties properties, DataService dataService, MessageService messageService) {
         this.allowedRoleId = properties.getProperty("discord.allowedRoleId");
         this.serverIp = properties.getProperty("server.ip");
         this.serverPort = Integer.parseInt(properties.getProperty("server.port"));
@@ -35,7 +35,7 @@ public class RetakeService {
         this.delay = Integer.parseInt(properties.getProperty("server.delay"));
         this.allowedMaps = properties.getProperty("csgo.maps");
         this.dataService = dataService;
-        messageService = new MessageService(properties);
+        this.messageService = messageService;
     }
 
     public String handleMapEvent(SlashCommandInteractionEvent event, String locale) {
@@ -63,10 +63,10 @@ public class RetakeService {
                 return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.mapnotallowed"), locale);
             }
         } catch (AuthenticationException ex) {
-            System.out.println("AuthenticationException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - RetakeService] AuthenticationException thrown: " + ex.getMessage());
             return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.majorerror"), locale);
         } catch (IOException ex) {
-            System.out.println("IOException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - RetakeService] IOException thrown: " + ex.getMessage());
             return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.majorerror"), locale);
         }
     }
@@ -80,9 +80,9 @@ public class RetakeService {
                 return messageService.sendEmbedMessageInCorrectChannel(event, RankStats.getRankStatsMessage(resourceBundle, rankStats), locale);
             }
         } catch (SQLException ex) {
-            System.out.println("SQLException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - RetakeService] SQLException thrown: " + ex.getMessage());
         } catch (NumberFormatException ex) {
-            System.out.println("NumberFormatException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - RetakeService] NumberFormatException thrown: " + ex.getMessage());
         }
         return new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror"));
     }
