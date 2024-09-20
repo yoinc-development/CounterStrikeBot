@@ -36,10 +36,10 @@ public class MessageService {
         try {
             textChannel.sendMessage(connectionBuilder.fetchAssistantRetakeMessage(retakePlayer)).queue();
         } catch (InterruptedException ex) {
-            System.out.println("InterruptedException thrown: " + ex);
+            System.out.println("[CSBot - MessageService] InterruptedException thrown: " + ex);
             //TODO send localized message instead of assistant message
         } catch (IOException ex) {
-            System.out.println("IOException thrown: " + ex);
+            System.out.println("[CSBot - MessageService] IOException thrown: " + ex);
             //TODO send localized message instead of assistant message
         }
     }

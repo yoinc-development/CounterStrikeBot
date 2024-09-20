@@ -69,9 +69,9 @@ public class DiscordService {
     private TimerTask collectionTask = new TimerTask() {
         @Override
         public void run() {
-            System.out.println("Collection Task started at " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")));
+            System.out.println("[CSBot - DiscordService] Collection Task started at " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")));
             runCollectionTask();
-            System.out.println("Collection Task finished at " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")));
+            System.out.println("[CSBot - DiscordService] Collection Task finished at " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")));
         }
     };
 
@@ -151,7 +151,7 @@ public class DiscordService {
                 }
             }
         } catch (SQLException ex) {
-            System.out.println("SQLException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - DiscordService] SQLException thrown: " + ex.getMessage());
         }
     }
 
@@ -177,7 +177,7 @@ public class DiscordService {
                 }
             }
         } catch (SQLException ex) {
-            System.out.println("SQLException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - DiscordService]SQLException thrown: " + ex.getMessage());
         }
     }
 
@@ -186,7 +186,7 @@ public class DiscordService {
             RetakePlayer retakePlayer = dataService.getHighestRetakeScoreAndPlayer();
             messageService.sendAssistantMessageRetake(retakePlayer, jda);
         } catch (SQLException ex) {
-            System.out.println("SQLException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - DiscordService] SQLException thrown: " + ex.getMessage());
         }
     }
 

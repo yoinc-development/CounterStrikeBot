@@ -63,10 +63,10 @@ public class RetakeService {
                 return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.mapnotallowed"), locale);
             }
         } catch (AuthenticationException ex) {
-            System.out.println("AuthenticationException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - RetakeService] AuthenticationException thrown: " + ex.getMessage());
             return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.majorerror"), locale);
         } catch (IOException ex) {
-            System.out.println("IOException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - RetakeService] IOException thrown: " + ex.getMessage());
             return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.majorerror"), locale);
         }
     }
@@ -80,9 +80,9 @@ public class RetakeService {
                 return messageService.sendEmbedMessageInCorrectChannel(event, RankStats.getRankStatsMessage(resourceBundle, rankStats), locale);
             }
         } catch (SQLException ex) {
-            System.out.println("SQLException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - RetakeService] SQLException thrown: " + ex.getMessage());
         } catch (NumberFormatException ex) {
-            System.out.println("NumberFormatException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - RetakeService] NumberFormatException thrown: " + ex.getMessage());
         }
         return new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror"));
     }

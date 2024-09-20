@@ -99,7 +99,7 @@ public class CsFunService {
                 return resourceBundle.getString("error.invalidwow");
             }
         } catch (SQLException ex) {
-            System.out.println("SQLException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - CsStatsService] SQLException thrown: " + ex.getMessage());
             return resourceBundle.getString("error.majorerror");
         }
     }
@@ -119,7 +119,7 @@ public class CsFunService {
         try {
             wowList.putAll(dataService.getAllWowEntries());
         } catch (SQLException ex) {
-            System.out.println("SQLException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - CsStatsService] SQLException thrown: " + ex.getMessage());
         }
     }
 

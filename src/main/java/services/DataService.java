@@ -191,7 +191,7 @@ public class DataService {
                 preparedStatement.executeUpdate();
             }
         } catch (SQLException ex) {
-            System.out.println("Can't add " + username + " with discordID " + discordID);
+            System.out.println("[CSBot - DataService] Can't add " + username + " with discordID " + discordID);
         }
     }
 

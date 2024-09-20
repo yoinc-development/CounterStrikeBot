@@ -32,7 +32,7 @@ public class StartUp {
         try {
 
             String startMessage = LocalDateTime.now().format(START_TIME) + " - Started application.";
-            System.out.println(startMessage);
+            System.out.println("[CSBot - StartUp] " + startMessage);
 
             InputStream inputStream = StartUp.class.getClassLoader().getResourceAsStream("config.properties");
             Properties properties = new Properties();
@@ -47,7 +47,7 @@ public class StartUp {
                 dataService = new DataService(properties);
                 messageService = new MessageService(properties);
             } catch (SQLException ex) {
-                System.out.println("SQL Exception thrown: " + ex.getMessage());
+                System.out.println("[CSBot - StartUp] SQL Exception thrown: " + ex.getMessage());
             }
 
             FaceitMatchService faceitMatchService = new FaceitMatchService(properties, dataService);
@@ -82,9 +82,9 @@ public class StartUp {
                 return response;
             });
         } catch (InterruptedException ex) {
-            System.out.println("InterruptedException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - StartUp] InterruptedException thrown: " + ex.getMessage());
         } catch (IOException ex) {
-            System.out.println("IOException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - StartUp] IOException thrown: " + ex.getMessage());
         }
     }
 }

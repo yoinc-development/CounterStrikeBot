@@ -36,16 +36,16 @@ public class CsStatsService {
             ResponseData responseData = getUserResponseData(requestedUser);
             return responseData.getBasicInfo(resourceBundle);
         } catch (InterruptedException ex) {
-            System.out.println("InterruptedException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - CsStatsService] InterruptedException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedException"));
         } catch (IOException ex) {
-            System.out.println("IOException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - CsStatsService] IOException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedException"));
         } catch (NullPointerException | JsonSyntaxException ex) {
-            System.out.println("NullPointerException / JSonSyntaxException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - CsStatsService] NullPointerException / JSonSyntaxException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.privacySettings").replace("%s", requestedUser));
         } catch (SQLException ex) {
-            System.out.println("SQLException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - CsStatsService] SQLException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.majorError"));
         }
     }
@@ -57,16 +57,16 @@ public class CsStatsService {
             String requestedUserTwo = event.getOption("playertwo").getAsString().toLowerCase();
             return comparePlayers(getUserResponseData(requestedUserOne), getUserResponseData(requestedUserTwo));
         } catch (NullPointerException ex) {
-            System.out.println("NullPointerException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - CsStatsService] NullPointerException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.wrongQueryParameters"));
         } catch (InterruptedException ex) {
-            System.out.println("InterruptedException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - CsStatsService] InterruptedException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedException"));
         } catch (IOException ex) {
-            System.out.println("IOException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - CsStatsService] IOException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedException"));
         } catch (SQLException ex) {
-            System.out.println("SQLException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - CsStatsService] SQLException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror"));
         }
     }
