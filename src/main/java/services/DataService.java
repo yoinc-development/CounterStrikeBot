@@ -1,6 +1,7 @@
 package services;
 
 import model.bot.GregflixEntry;
+import model.bot.User;
 import model.omdb.OMDBMovieResponse;
 import model.retake.RetakePlayer;
 import model.steam.SteamUIDConverter;
@@ -8,7 +9,9 @@ import model.retake.RankStats;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Properties;
 
 public class DataService {
@@ -30,6 +33,44 @@ public class DataService {
         preparedStatement.executeUpdate();
     }
 
+    public List<User> getAllGregflixUsers() throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM users WHERE hasGregflix = ?");
+        preparedStatement.setBoolean(1, true);
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        List<User> resultList = new ArrayList<User>();
+
+        while ((resultSet.next())) {
+            User user = new User(resultSet.getInt("user_id"),
+                    resultSet.getString("username"),
+                    resultSet.getString("steamID"),
+                    resultSet.getString("faceitID"),
+                    resultSet.getString("discordID"),
+                    resultSet.getBoolean("hasGregflix"));
+            resultList.add(user);
+        }
+        return resultList;
+    }
+
+    public List<GregflixEntry> getGregflixEntriesForThisWeek(Date startOfWeek, Date endOfWeek) throws SQLException{
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM gregflix WHERE uploadedDate >= ? AND uploadedDate <= ?");
+        preparedStatement.setDate(1, startOfWeek);
+        preparedStatement.setDate(2, endOfWeek);
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        List<GregflixEntry> resultList = new ArrayList<GregflixEntry>();
+
+        while(resultSet.next()) {
+            GregflixEntry gregflixEntry = new GregflixEntry(resultSet.getString("imdbID"),
+                    resultSet.getString("title"),
+                    resultSet.getBoolean("uploaded"),
+                    resultSet.getDate("uploadedDate"),
+                    resultSet.getString("showType"));
+            resultList.add(gregflixEntry);
+        }
+        return resultList;
+    }
+
     public String getDiscordIdForUsername(String username) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM users WHERE username = ?");
         preparedStatement.setString(1, username);
@@ -47,13 +88,13 @@ public class DataService {
         ResultSet resultSet = preparedStatement.executeQuery();
 
         while (resultSet.next()) {
-            if(StringUtils.isEmpty(resultSet.getString("title"))) {
+            if (StringUtils.isEmpty(resultSet.getString("title"))) {
                 preparedStatement = connection.prepareStatement("UPDATE gregflix SET title = ? WHERE imdbid = ?");
                 preparedStatement.setString(1, omdbMovieResponse.getTitle());
                 preparedStatement.setString(2, omdbMovieResponse.getImdbID());
                 preparedStatement.executeUpdate();
             }
-            return new GregflixEntry(omdbMovieResponse.getImdbID(), omdbMovieResponse.getTitle(), resultSet.getBoolean("uploaded"));
+            return new GregflixEntry(omdbMovieResponse.getImdbID(), omdbMovieResponse.getTitle(), resultSet.getBoolean("uploaded"), resultSet.getDate("uploadedDate"), resultSet.getString("showType"));
         }
         return null;
     }
@@ -74,7 +115,7 @@ public class DataService {
         preparedStatement.setString(1, imdbID);
         ResultSet resultSet = preparedStatement.executeQuery();
 
-        if(resultSet.next()) {
+        if (resultSet.next()) {
             updateGregflixEntryToNotUploaded(imdbID);
         } else {
             preparedStatement = connection.prepareStatement("INSERT INTO gregflix(title, imdbid, uploaded, showType) VALUES(?,?,?,?)");
@@ -142,7 +183,7 @@ public class DataService {
 
     public void addUserToDatabase(String username, String discordID) {
         try {
-            if(!isUsernameInDatabase(username)) {
+            if (!isUsernameInDatabase(username)) {
                 PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO users(username, discordID, hasGregflix) VALUES(?,?,?)");
                 preparedStatement.setString(1, username);
                 preparedStatement.setString(2, discordID);
@@ -154,7 +195,7 @@ public class DataService {
         }
     }
 
-    private boolean isUsernameInDatabase(String username) throws SQLException{
+    private boolean isUsernameInDatabase(String username) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement("SELECT u.username FROM users AS u WHERE u.username = ?");
         preparedStatement.setString(1, username);
         ResultSet resultSet = preparedStatement.executeQuery();
@@ -257,7 +298,7 @@ public class DataService {
         }
     }
 
-    public RetakePlayer getHighestRetakeScoreAndPlayer() throws  SQLException {
+    public RetakePlayer getHighestRetakeScoreAndPlayer() throws SQLException {
         RetakePlayer retakePlayer = null;
 
         PreparedStatement preparedStatement = connection.prepareStatement("SELECT l.name, l.value FROM lvl_base as l WHERE l.value in (SELECT MAX(value) FROM lvl_base)");
