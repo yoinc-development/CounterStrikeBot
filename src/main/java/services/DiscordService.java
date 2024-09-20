@@ -47,14 +47,15 @@ public class DiscordService {
             }
         };
 
-        //on restarts all tasks will be scheduled to start at 1pm
-        //long delay = getDelay();
+        long weeklyReportdelay = getWeeklyReportDelay();
 
-        long delay = 0l;
+        //on restarts all tasks will be scheduled to start at the next full hour
+        long taskDelay = getTaskDelay();
+
         Timer timer = new Timer("Discord Service Tasks");
-        timer.schedule(collectionTask, delay, 86400000L);
-        timer.schedule(joinTask, delay, 300000L);
-        timer.schedule(weekInReviewTask, delay, (7 * 24 * 60 * 60 * 1000L));
+        timer.schedule(collectionTask, taskDelay, 86400000L);
+        timer.schedule(joinTask, taskDelay, 300000L);
+        timer.schedule(weekInReviewTask, weeklyReportdelay, (7 * 24 * 60 * 60 * 1000L));
     }
 
     public String getUserLocale(GenericCommandInteractionEvent event) {
@@ -88,7 +89,18 @@ public class DiscordService {
         }
     };
 
-    private static long getDelay() {
+    private static long getTaskDelay() {
+        Calendar now = Calendar.getInstance();
+        Calendar todayNextHour = Calendar.getInstance();
+
+        todayNextHour.set(Calendar.HOUR_OF_DAY, now.get(Calendar.HOUR_OF_DAY) + 1);
+        todayNextHour.set(Calendar.MINUTE, 0);
+        todayNextHour.set(Calendar.SECOND, 0);
+        todayNextHour.set(Calendar.MILLISECOND, 0);
+
+        return todayNextHour.getTimeInMillis() - now.getTimeInMillis();
+    }
+    private static long getWeeklyReportDelay() {
         Calendar now = Calendar.getInstance();
         Calendar nextFriday1pm = Calendar.getInstance();
         nextFriday1pm.set(Calendar.DAY_OF_WEEK, Calendar.FRIDAY);
@@ -115,7 +127,7 @@ public class DiscordService {
     private void runWeeklyInReviewTask() {
         try {
             List<User> userList = dataService.getAllGregflixUsers();
-            List<GregflixEntry> gregflixEntryList = dataService.getGregflixEntriesForThisWeek(new Date(new java.util.Date().getTime() - (6 * (1000 * 60 * 60 * 24))), new Date(new java.util.Date().getTime()));
+            List<GregflixEntry> gregflixEntryList = dataService.getGregflixEntriesForThisWeek(new Date(new java.util.Date().getTime() - (7 * (1000 * 60 * 60 * 24))), new Date(new java.util.Date().getTime()));
 
             StringBuilder weeklyReportMessage = new StringBuilder();
             weeklyReportMessage.append(resourceBundle.getString("weeklyReport.introduction"));
