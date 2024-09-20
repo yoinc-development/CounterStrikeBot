@@ -62,7 +62,7 @@ public class MessageService {
 
     public void contactGreg(String message, String discordId, JDA jda) {
         jda.getUserById(discordId).openPrivateChannel().queue((privateChannel -> {
-            privateChannel.sendMessage(message).queue();
+            privateChannel.sendMessage("´´" + message + "´´").queue();
         }));
     }
 
