@@ -113,7 +113,7 @@ public class CounterStrikeBotListener extends ListenerAdapter {
 
     @Override
     public void onButtonInteraction(ButtonInteractionEvent buttonInteractionEvent) {
-        String locale = "en";
+        String locale = discordService.getUserLocale(buttonInteractionEvent);
         buttonInteractionEvent.getMessageChannel().sendMessage(gregflixService.handleButtonEvent(buttonInteractionEvent, locale)).queue();
     }
 
