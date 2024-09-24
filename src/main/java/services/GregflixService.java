@@ -9,9 +9,12 @@ import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
+import org.codehaus.plexus.util.StringUtils;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.ResourceBundle;
@@ -69,7 +72,9 @@ public class GregflixService {
                         }
                         embedBuilder.addField(new MessageEmbed.Field("Genre", omdbMovieResponse.getGenre(), false));
                         embedBuilder.addField(new MessageEmbed.Field("IMDB ID", omdbMovieResponse.getImdbID(), false));
-                        embedBuilder.setImage(omdbMovieResponse.getPoster());
+                        if(!StringUtils.isEmpty(omdbMovieResponse.getPoster())) {
+                            embedBuilder.setImage(omdbMovieResponse.getPoster());
+                        }
                         messageService.sendGregflixEmbedMessage(privateChannel, embedBuilder, locale, false, omdbMovieResponse);
                     } else {
                         if("series".equals(omdbMovieResponse.getType())) {
@@ -105,6 +110,8 @@ public class GregflixService {
                         String[] splitMessage = message.getContentDisplay().split("--");
                         dataService.updateGregflixEntryToUploaded(splitMessage[3]);
                         messageService.sendPrivateMessageToUser(messageReactionAddEvent.getJDA(), resourceBundle.getString("gregflix.requestedDone").replace("%s", splitMessage[1]), dataService.getDiscordIdForUsername(splitMessage[0]));
+                        message.delete().queue();
+                        System.out.println("[CSBot - GregflixService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] Informed " + splitMessage[0] + " about " + splitMessage[3] + ".");
                     } catch (SQLException ex) {
                         messageReactionAddEvent.getChannel().sendMessage("error in sending private message").queue();
                     }

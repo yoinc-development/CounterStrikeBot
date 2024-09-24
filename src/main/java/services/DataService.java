@@ -9,6 +9,8 @@ import model.retake.RankStats;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.sql.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -191,7 +193,7 @@ public class DataService {
                 preparedStatement.executeUpdate();
             }
         } catch (SQLException ex) {
-            System.out.println("[CSBot - DataService] Can't add " + username + " with discordID " + discordID);
+            System.out.println("[CSBot - DataService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] Can't add " + username + " with discordID " + discordID);
         }
     }
 

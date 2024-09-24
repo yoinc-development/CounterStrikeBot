@@ -14,6 +14,8 @@ import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.ResourceBundle;
@@ -36,10 +38,10 @@ public class MessageService {
         try {
             textChannel.sendMessage(connectionBuilder.fetchAssistantRetakeMessage(retakePlayer)).queue();
         } catch (InterruptedException ex) {
-            System.out.println("[CSBot - MessageService] InterruptedException thrown: " + ex);
+            System.out.println("[CSBot - MessageService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] InterruptedException thrown: " + ex);
             //TODO send localized message instead of assistant message
         } catch (IOException ex) {
-            System.out.println("[CSBot - MessageService] IOException thrown: " + ex);
+            System.out.println("[CSBot - MessageService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] IOException thrown: " + ex);
             //TODO send localized message instead of assistant message
         }
     }
