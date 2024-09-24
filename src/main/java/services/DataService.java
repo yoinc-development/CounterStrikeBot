@@ -53,7 +53,7 @@ public class DataService {
     }
 
     public List<GregflixEntry> getGregflixEntriesForThisWeek(Date startOfWeek, Date endOfWeek) throws SQLException{
-        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM gregflix WHERE uploadedDate >= ? AND uploadedDate <= ?");
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM gregflix WHERE uploadedDate >= ? AND uploadedDate <= ? ORDER BY title ASC");
         preparedStatement.setDate(1, startOfWeek);
         preparedStatement.setDate(2, endOfWeek);
         ResultSet resultSet = preparedStatement.executeQuery();
