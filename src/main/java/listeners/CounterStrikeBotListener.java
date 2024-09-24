@@ -35,35 +35,37 @@ public class CounterStrikeBotListener extends ListenerAdapter {
 
         String locale = discordService.getUserLocale(event);
 
-        if(event.getGuild().getMembers().contains(event.getMember())) {
-            if ("stats".equals(event.getName())) {
-                event.deferReply().queue();
-                event.getHook().sendMessageEmbeds(csStatsService.handleStatsEvent(event, locale).build()).queue();
-            }
+        if(!event.getChannel().getType().equals(ChannelType.PRIVATE)) {
+            if (event.getGuild() != null && event.getGuild().getMembers().contains(event.getMember())) {
+                if ("stats".equals(event.getName())) {
+                    event.deferReply().queue();
+                    event.getHook().sendMessageEmbeds(csStatsService.handleStatsEvent(event, locale).build()).queue();
+                }
 
-            if ("compare".equals(event.getName())) {
-                event.deferReply().queue();
-                event.getHook().sendMessageEmbeds(csStatsService.handleCompareEvent(event, locale).build()).queue();
-            }
+                if ("compare".equals(event.getName())) {
+                    event.deferReply().queue();
+                    event.getHook().sendMessageEmbeds(csStatsService.handleCompareEvent(event, locale).build()).queue();
+                }
 
-            if ("map".equals(event.getName())) {
-                event.deferReply().queue();
-                event.getHook().sendMessage(retakeService.handleMapEvent(event, locale)).queue();
-            }
+                if ("map".equals(event.getName())) {
+                    event.deferReply().queue();
+                    event.getHook().sendMessage(retakeService.handleMapEvent(event, locale)).queue();
+                }
 
-            if ("wow".equals(event.getName())) {
-                event.deferReply().queue();
-                event.getHook().sendMessage(csFunService.handleAddWowEvent(event, locale)).queue();
-            }
+                if ("wow".equals(event.getName())) {
+                    event.deferReply().queue();
+                    event.getHook().sendMessage(csFunService.handleAddWowEvent(event, locale)).queue();
+                }
 
-            if ("teams".equals(event.getName())) {
-                event.deferReply().queue();
-                event.getHook().sendMessageEmbeds(csFunService.handleSetTeamsEvent(event, locale).build()).queue();
-            }
+                if ("teams".equals(event.getName())) {
+                    event.deferReply().queue();
+                    event.getHook().sendMessageEmbeds(csFunService.handleSetTeamsEvent(event, locale).build()).queue();
+                }
 
-            if ("status".equals(event.getName())) {
-                event.deferReply().queue();
-                event.getHook().sendMessageEmbeds(retakeService.handleStatusEvent(event, locale).build()).queue();
+                if ("status".equals(event.getName())) {
+                    event.deferReply().queue();
+                    event.getHook().sendMessageEmbeds(retakeService.handleStatusEvent(event, locale).build()).queue();
+                }
             }
         }
     }
@@ -111,7 +113,7 @@ public class CounterStrikeBotListener extends ListenerAdapter {
 
     @Override
     public void onButtonInteraction(ButtonInteractionEvent buttonInteractionEvent) {
-        String locale = "en";
+        String locale = discordService.getUserLocale(buttonInteractionEvent);
         buttonInteractionEvent.getMessageChannel().sendMessage(gregflixService.handleButtonEvent(buttonInteractionEvent, locale)).queue();
     }
 

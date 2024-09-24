@@ -7,7 +7,9 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import retakeServer.RetakeWatchdog;
@@ -58,10 +60,16 @@ public class DiscordService {
         timer.schedule(weekInReviewTask, weeklyReportdelay, (7 * 24 * 60 * 60 * 1000L));
     }
 
-    public String getUserLocale(GenericCommandInteractionEvent event) {
+    public String getUserLocale(Event event) {
         String locale = "en";
-        if (event.getInteraction().getUserLocale().getLocale().equals("de")) {
-            locale = "de";
+        if(event instanceof GenericCommandInteractionEvent) {
+            if (((GenericCommandInteractionEvent)event).getInteraction().getUserLocale().getLocale().equals("de")) {
+                locale = "de";
+            }
+        } else if(event instanceof ButtonInteractionEvent) {
+            if(((ButtonInteractionEvent) event).getInteraction().getUserLocale().getLocale().equals("de")) {
+                locale = "de";
+            }
         }
         return locale;
     }
