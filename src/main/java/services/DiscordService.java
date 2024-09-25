@@ -56,7 +56,7 @@ public class DiscordService {
 
         Timer timer = new Timer("Discord Service Tasks");
         timer.schedule(collectionTask, taskDelay, 86400000L);
-        timer.schedule(joinTask, taskDelay, 300000L);
+        timer.schedule(joinTask, 0L, 300000L);
         timer.schedule(weekInReviewTask, weeklyReportdelay, (7 * 24 * 60 * 60 * 1000L));
     }
 
