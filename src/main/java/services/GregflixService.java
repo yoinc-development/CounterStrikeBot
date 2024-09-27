@@ -1,5 +1,6 @@
 package services;
 
+import com.google.gson.JsonSyntaxException;
 import http.ConnectionBuilder;
 import model.bot.GregflixEntry;
 import model.omdb.OMDBMovieResponse;
@@ -100,6 +101,9 @@ public class GregflixService {
             messageService.sendGregflixEmbedMessage(privateChannel, new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror")), locale, true, null);
         } catch (SQLException ex) {
             System.out.println("[CSBot - GregflixService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] SQLException thrown: " + ex.getMessage());
+            messageService.sendGregflixEmbedMessage(privateChannel, new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror")), locale, true, null);
+        } catch (JsonSyntaxException ex) {
+            System.out.println("[CSBot - GregflixService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] JsonSyntaxException thrown: " + ex.getMessage());
             messageService.sendGregflixEmbedMessage(privateChannel, new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror")), locale, true, null);
         }
     }

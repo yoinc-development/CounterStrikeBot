@@ -69,7 +69,7 @@ public class ConnectionBuilder {
         return responseData;
     }
 
-    public OMDBMovieResponse fetchMovieDetails(String title) throws IOException, InterruptedException {
+    public OMDBMovieResponse fetchMovieDetails(String title) throws IOException, InterruptedException, JsonSyntaxException {
         HttpClient client = HttpClient.newHttpClient();
 
         HttpRequest request;
