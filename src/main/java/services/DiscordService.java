@@ -114,7 +114,7 @@ public class DiscordService {
         Calendar now = Calendar.getInstance();
         Calendar nextFriday3pm = Calendar.getInstance();
         nextFriday3pm.set(Calendar.DAY_OF_WEEK, Calendar.FRIDAY);
-        nextFriday3pm.set(Calendar.HOUR_OF_DAY, 13);
+        nextFriday3pm.set(Calendar.HOUR_OF_DAY, 11);
         nextFriday3pm.set(Calendar.MINUTE, 0);
         nextFriday3pm.set(Calendar.SECOND, 0);
         nextFriday3pm.set(Calendar.MILLISECOND, 0);
@@ -153,18 +153,18 @@ public class DiscordService {
                 }
                 List<String> returnMessages = new ArrayList<String>();
                 returnMessages.add(resourceBundle.getString("weeklyReport.introduction"));
-                if(!resourceBundle.getString("weeklyReport.seriesList").equals(seriesList) {
+                if(!resourceBundle.getString("weeklyReport.seriesList").equals(seriesList)) {
                     returnMessages.add(seriesList);
                 }
-                if(!resourceBundle.getString("weeklyReport.movieList").equals(movieList) {
-                    returnMessages.add(movieList)
+                if(!resourceBundle.getString("weeklyReport.movieList").equals(movieList)) {
+                    returnMessages.add(movieList);
                 }
                 returnMessages.add(resourceBundle.getString("weeklyReport.signature"));
 
                 for (User user : userList) {
                     jda.getUserById(user.getDiscordID()).openPrivateChannel().queue((privateChannel -> {
                         for(String message : returnMessages) {
-                            privateChannel.sendMessage(returnMessages).queue(); 
+                            privateChannel.sendMessage(message).queue();
                         }
                     }));
                 }
