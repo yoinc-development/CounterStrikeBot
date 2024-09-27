@@ -106,7 +106,11 @@ public class RetakeService {
             String status = rcon.command("status");
             rcon.disconnect();
             return new ServerStatus(status);
-        } catch (AuthenticationException | IOException e) {
+        } catch (AuthenticationException ex) {
+            System.out.println("[CSBot - RetakeService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] AuthenticationException thrown: " + ex.getMessage());
+            return null;
+        } catch (IOException ex) {
+            System.out.println("[CSBot - RetakeService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] IOException thrown: " + ex.getMessage());
             return null;
         }
     }
