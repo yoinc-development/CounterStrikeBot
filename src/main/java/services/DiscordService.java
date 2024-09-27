@@ -112,17 +112,17 @@ public class DiscordService {
 
         //the physical server is located at GMT+0, the message must be sent based on GMT+2
         Calendar now = Calendar.getInstance();
-        Calendar nextFriday1pm = Calendar.getInstance();
-        nextFriday1pm.set(Calendar.DAY_OF_WEEK, Calendar.FRIDAY);
-        nextFriday1pm.set(Calendar.HOUR_OF_DAY, 11);
-        nextFriday1pm.set(Calendar.MINUTE, 0);
-        nextFriday1pm.set(Calendar.SECOND, 0);
-        nextFriday1pm.set(Calendar.MILLISECOND, 0);
+        Calendar nextFriday3pm = Calendar.getInstance();
+        nextFriday3pm.set(Calendar.DAY_OF_WEEK, Calendar.FRIDAY);
+        nextFriday3pm.set(Calendar.HOUR_OF_DAY, 13);
+        nextFriday3pm.set(Calendar.MINUTE, 0);
+        nextFriday3pm.set(Calendar.SECOND, 0);
+        nextFriday3pm.set(Calendar.MILLISECOND, 0);
 
-        if (now.after(nextFriday1pm)) {
-            nextFriday1pm.add(Calendar.WEEK_OF_YEAR, 1);
+        if (now.after(nextFriday3pm)) {
+            nextFriday3pm.add(Calendar.WEEK_OF_YEAR, 1);
         }
-        long result = nextFriday1pm.getTimeInMillis() - now.getTimeInMillis();
+        long result = nextFriday3pm.getTimeInMillis() - now.getTimeInMillis();
         System.out.println(result);
         return result;
     }
@@ -140,8 +140,6 @@ public class DiscordService {
             List<User> userList = dataService.getAllGregflixUsers();
             List<GregflixEntry> gregflixEntryList = dataService.getGregflixEntriesForThisWeek(new Date(new java.util.Date().getTime() - (7 * (1000 * 60 * 60 * 24))), new Date(new java.util.Date().getTime()));
 
-            StringBuilder weeklyReportMessage = new StringBuilder();
-            weeklyReportMessage.append(resourceBundle.getString("weeklyReport.introduction"));
             String movieList = resourceBundle.getString("weeklyReport.movieList");
             String seriesList = resourceBundle.getString("weeklyReport.seriesList");
 
@@ -153,11 +151,21 @@ public class DiscordService {
                         movieList = movieList + "- " + gregflixEntry.getTitle() + "\n";
                     }
                 }
-                weeklyReportMessage.append(seriesList).append("\n").append(movieList).append("\n").append(resourceBundle.getString("weeklyReport.signature"));
+                List<String> returnMessages = new ArrayList<String>();
+                returnMessages.add(resourceBundle.getString("weeklyReport.introduction"));
+                if(!resourceBundle.getString("weeklyReport.seriesList").equals(seriesList) {
+                    returnMessages.add(seriesList);
+                }
+                if(!resourceBundle.getString("weeklyReport.movieList").equals(movieList) {
+                    returnMessages.add(movieList)
+                }
+                returnMessages.add(resourceBundle.getString("weeklyReport.signature"));
 
                 for (User user : userList) {
                     jda.getUserById(user.getDiscordID()).openPrivateChannel().queue((privateChannel -> {
-                        privateChannel.sendMessage(weeklyReportMessage.toString()).queue();
+                        for(String message : returnMessages) {
+                            privateChannel.sendMessage(returnMessages).queue(); 
+                        }
                     }));
                 }
             }
