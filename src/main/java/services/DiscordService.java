@@ -109,10 +109,12 @@ public class DiscordService {
         return todayNextHour.getTimeInMillis() - now.getTimeInMillis();
     }
     private static long getWeeklyReportDelay() {
+
+        //the physical server is located at GMT+0, the message must be sent based on GMT+2
         Calendar now = Calendar.getInstance();
         Calendar nextFriday1pm = Calendar.getInstance();
         nextFriday1pm.set(Calendar.DAY_OF_WEEK, Calendar.FRIDAY);
-        nextFriday1pm.set(Calendar.HOUR_OF_DAY, 13);
+        nextFriday1pm.set(Calendar.HOUR_OF_DAY, 11);
         nextFriday1pm.set(Calendar.MINUTE, 0);
         nextFriday1pm.set(Calendar.SECOND, 0);
         nextFriday1pm.set(Calendar.MILLISECOND, 0);
@@ -120,8 +122,9 @@ public class DiscordService {
         if (now.after(nextFriday1pm)) {
             nextFriday1pm.add(Calendar.WEEK_OF_YEAR, 1);
         }
-
-        return nextFriday1pm.getTimeInMillis() - now.getTimeInMillis();
+        long result = nextFriday1pm.getTimeInMillis() - now.getTimeInMillis();
+        System.out.println(result);
+        return result;
     }
 
     private void runCollectionTask() {
