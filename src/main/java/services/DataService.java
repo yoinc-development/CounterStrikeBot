@@ -129,6 +129,12 @@ public class DataService {
         }
     }
 
+    public void removeGregflixEntry(String imdbID) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM gregflix WHERE imdbid = ?");
+        preparedStatement.setString(1, imdbID);
+        preparedStatement.executeUpdate();
+    }
+
     public void updateGregflixEntryToUploaded(String imdbID) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement("UPDATE gregflix SET uploaded = ?, uploadedDate = ? WHERE imdbid = ?");
         preparedStatement.setBoolean(1, true);

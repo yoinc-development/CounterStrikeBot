@@ -116,10 +116,27 @@ public class GregflixService {
                 messageReactionAddEvent.getChannel().retrieveMessageById(messageReactionAddEvent.getMessageId()).queue((message -> {
                     try {
                         String[] splitMessage = message.getContentDisplay().split("--");
-                        dataService.updateGregflixEntryToUploaded(splitMessage[3]);
-                        messageService.sendPrivateMessageToUser(messageReactionAddEvent.getJDA(), resourceBundle.getString("gregflix.requestedDone").replace("%s", splitMessage[1]), dataService.getDiscordIdForUsername(splitMessage[0]));
-                        message.delete().queue();
-                        System.out.println("[CSBot - GregflixService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] Informed " + splitMessage[0] + " about " + splitMessage[3] + ".");
+
+                        switch (messageReactionAddEvent.getReaction().getEmoji().getAsReactionCode()) {
+                            case "\uD83E\uDD47":
+                                dataService.updateGregflixEntryToUploaded(splitMessage[3]);
+                                messageService.sendPrivateMessageToUser(messageReactionAddEvent.getJDA(), resourceBundle.getString("gregflix.requestedDone").replace("%s", splitMessage[1]), dataService.getDiscordIdForUsername(splitMessage[0]));
+                                System.out.println("[CSBot - GregflixService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] Informed " + splitMessage[0] + " about successful " + splitMessage[3] + ".");
+                                message.delete().queue();
+                                break;
+                            case "\uD83E\uDD48":
+                                dataService.updateGregflixEntryToUploaded(splitMessage[3]);
+                                messageService.sendPrivateMessageToUser(messageReactionAddEvent.getJDA(), resourceBundle.getString("gregflix.requestedPartial").replace("%s", splitMessage[1]), dataService.getDiscordIdForUsername(splitMessage[0]));
+                                System.out.println("[CSBot - GregflixService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] Informed " + splitMessage[0] + " about partial " + splitMessage[3] + ".");
+                                message.delete().queue();
+                                break;
+                            case "\uD83E\uDD49":
+                                dataService.removeGregflixEntry(splitMessage[3]);
+                                messageService.sendPrivateMessageToUser(messageReactionAddEvent.getJDA(), resourceBundle.getString("gregflix.requestedFailed").replace("%s", splitMessage[1]), dataService.getDiscordIdForUsername(splitMessage[0]));
+                                System.out.println("[CSBot - GregflixService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] Informed " + splitMessage[0] + " about failed " + splitMessage[3] + ".");
+                                message.delete().queue();
+                                break;
+                        }
                     } catch (SQLException ex) {
                         messageReactionAddEvent.getChannel().sendMessage("error in sending private message").queue();
                     }
