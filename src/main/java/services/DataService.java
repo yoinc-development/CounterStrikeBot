@@ -191,7 +191,7 @@ public class DataService {
 
     public void addUserToDatabase(String username, String discordID) {
         try {
-            if (!isUsernameInDatabase(username)) {
+            if (!isDiscordIdInDatabase(discordID)) {
                 PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO users(username, discordID, hasGregflix) VALUES(?,?,?)");
                 preparedStatement.setString(1, username);
                 preparedStatement.setString(2, discordID);
@@ -203,9 +203,9 @@ public class DataService {
         }
     }
 
-    private boolean isUsernameInDatabase(String username) throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement("SELECT u.username FROM users AS u WHERE u.username = ?");
-        preparedStatement.setString(1, username);
+    private boolean isDiscordIdInDatabase(String discordID) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT u.discordID FROM users AS u WHERE u.discordID = ?");
+        preparedStatement.setString(1, discordID);
         ResultSet resultSet = preparedStatement.executeQuery();
 
         while (resultSet.next()) {
