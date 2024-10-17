@@ -1,6 +1,5 @@
-CREATE TABLE IF NOT EXISTS s4032_csbot.users (user_id INT AUTO_INCREMENT, username VARCHAR(50) NOT NULL UNIQUE, steamID VARCHAR(250) UNIQUE, faceitID VARCHAR(250) UNIQUE, discordID VARCHAR(250) UNIQUE, hasGregflix boolean NOT NULL, PRIMARY KEY (user_id));
+CREATE TABLE IF NOT EXISTS s4032_csbot.users (user_id INT AUTO_INCREMENT, username VARCHAR(50) NOT NULL UNIQUE, steamID VARCHAR(250) UNIQUE, faceitID VARCHAR(250) UNIQUE, discordID VARCHAR(250) UNIQUE, hasGregflix boolean DEFAULT FALSE, PRIMARY KEY (user_id));
 CREATE TABLE IF NOT EXISTS s4032_csbot.wow (wow_id INT AUTO_INCREMENT, f_user_id INT NOT NULL, url VARCHAR(200) NOT NULL, PRIMARY KEY(wow_id), FOREIGN KEY (f_user_id) REFERENCES users(user_id));
-CREATE TABLE IF NOT EXISTS s4032_csbot.gregflix(title VARCHAR(200), imdbid VARCHAR(20), uploaded boolean, uploadedDate DATE, showType VARCHAR(10), PRIMARY KEY(imdbid));
 
 UPDATE s4032_csbot.users SET steamID = "76561198077352267" WHERE username = "aatha";
 UPDATE s4032_csbot.users SET steamID = "76561198213130649" WHERE username = "dase8760";

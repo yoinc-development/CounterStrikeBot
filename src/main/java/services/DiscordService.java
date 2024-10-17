@@ -1,7 +1,5 @@
 package services;
 
-import model.bot.GregflixEntry;
-import model.bot.User;
 import model.retake.RetakePlayer;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
@@ -15,7 +13,6 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import retakeServer.RetakeWatchdog;
 import retakeServer.ServerStatus;
 
-import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -49,15 +46,12 @@ public class DiscordService {
             }
         };
 
-        long weeklyReportdelay = getWeeklyReportDelay();
-
         //on restarts all tasks will be scheduled to start at the next full hour
         long taskDelay = getTaskDelay();
 
         Timer timer = new Timer("Discord Service Tasks");
         timer.schedule(collectionTask, taskDelay, 86400000L);
         timer.schedule(joinTask, 0L, 300000L);
-        timer.schedule(weekInReviewTask, weeklyReportdelay, (7 * 24 * 60 * 60 * 1000L));
     }
 
     public String getUserLocale(Event event) {
@@ -87,13 +81,6 @@ public class DiscordService {
         @Override
         public void run() {
             runJoinTask();
-        }
-    };
-
-    private TimerTask weekInReviewTask = new TimerTask() {
-        @Override
-        public void run() {
-            runWeeklyInReviewTask();
         }
     };
 
@@ -132,45 +119,6 @@ public class DiscordService {
             for (Member member : guild.getMembers()) {
                 dataService.addUserToDatabase(member.getUser().getName(), member.getId());
             }
-        }
-    }
-
-    private void runWeeklyInReviewTask() {
-        try {
-            List<User> userList = dataService.getAllGregflixUsers();
-            List<GregflixEntry> gregflixEntryList = dataService.getGregflixEntriesForThisWeek(new Date(new java.util.Date().getTime() - (7 * (1000 * 60 * 60 * 24))), new Date(new java.util.Date().getTime()));
-
-            String movieList = resourceBundle.getString("weeklyReport.movieList");
-            String seriesList = resourceBundle.getString("weeklyReport.seriesList");
-
-            if(gregflixEntryList != null && !gregflixEntryList.isEmpty() && userList != null && !userList.isEmpty()) {
-                for (GregflixEntry gregflixEntry : gregflixEntryList) {
-                    if ("series".equals(gregflixEntry.getShowType())) {
-                        seriesList = seriesList + "- " + gregflixEntry.getTitle() + "\n";
-                    } else {
-                        movieList = movieList + "- " + gregflixEntry.getTitle() + "\n";
-                    }
-                }
-                List<String> returnMessages = new ArrayList<String>();
-                returnMessages.add(resourceBundle.getString("weeklyReport.introduction"));
-                if(!resourceBundle.getString("weeklyReport.seriesList").equals(seriesList)) {
-                    returnMessages.add(seriesList);
-                }
-                if(!resourceBundle.getString("weeklyReport.movieList").equals(movieList)) {
-                    returnMessages.add(movieList);
-                }
-                returnMessages.add(resourceBundle.getString("weeklyReport.signature"));
-
-                for (User user : userList) {
-                    jda.getUserById(user.getDiscordID()).openPrivateChannel().queue((privateChannel -> {
-                        for(String message : returnMessages) {
-                            privateChannel.sendMessage(message).queue();
-                        }
-                    }));
-                }
-            }
-        } catch (SQLException ex) {
-            System.out.println("[CSBot - DiscordService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] SQLException thrown: " + ex.getMessage());
         }
     }
 

@@ -26,8 +26,6 @@ import static spark.Spark.port;
 
 public class StartUp {
 
-    private static final DateTimeFormatter START_TIME = DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss");
-
     public static void main(String[] args) {
         try {
 

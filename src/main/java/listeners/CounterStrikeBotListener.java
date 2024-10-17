@@ -20,14 +20,12 @@ public class CounterStrikeBotListener extends ListenerAdapter {
     private RetakeService retakeService;
     private CsFunService csFunService;
     private DiscordService discordService;
-    private GregflixService gregflixService;
 
     public CounterStrikeBotListener(Properties properties, DataService dataService, MessageService messageService) {
         csStatsService = new CsStatsService(properties, dataService);
         csFunService = new CsFunService(dataService, messageService);
         retakeService = new RetakeService(properties, dataService, messageService);
         discordService = new DiscordService(properties, dataService, retakeService, messageService);
-        gregflixService = new GregflixService(properties, messageService, dataService);
     }
 
     @Override
@@ -96,39 +94,5 @@ public class CounterStrikeBotListener extends ListenerAdapter {
     public void onReady(ReadyEvent event){
         JDA jda = event.getJDA();
         CompletableFuture.runAsync( () -> discordService.scheduleAllTasks(jda));
-    }
-
-    @Override
-    public void onMessageReceived(MessageReceivedEvent messageReceivedEvent) {
-        String locale = "en";
-
-        if(messageReceivedEvent.getChannel().getType().equals(ChannelType.PRIVATE)) {
-            if(!messageReceivedEvent.getAuthor().isBot()) {
-                messageReceivedEvent.getAuthor().openPrivateChannel().queue((privateChannel -> {
-                    gregflixService.handleGregflixEvent(messageReceivedEvent, locale, privateChannel);
-                }));
-            }
-        }
-    }
-
-    @Override
-    public void onButtonInteraction(ButtonInteractionEvent buttonInteractionEvent) {
-        String locale = discordService.getUserLocale(buttonInteractionEvent);
-        buttonInteractionEvent.getMessageChannel().sendMessage(gregflixService.handleButtonEvent(buttonInteractionEvent, locale)).queue();
-    }
-
-    @Override
-    public void onMessageReactionAdd(MessageReactionAddEvent messageReactionAddEvent) {
-        String locale = "en";
-
-        if(messageReactionAddEvent.getChannel().getType().equals(ChannelType.PRIVATE)) {
-            if(!messageReactionAddEvent.getUser().isBot()) {
-                messageReactionAddEvent.retrieveMessage().queue((message -> {
-                    if(message.getAuthor().isBot() && message.getContentDisplay().matches("[^\\n]+?--[^\\n]+?--[^\\n]+?--[^\\n]+?")) {
-                        gregflixService.handleGregflixReactionEvent(messageReactionAddEvent, locale);
-                    }
-                }));
-            }
-        }
     }
 }
