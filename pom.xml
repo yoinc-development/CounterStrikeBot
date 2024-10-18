@@ -7,7 +7,7 @@
 
     <groupId>ch.yoinc</groupId>
     <artifactId>CounterStrikeBot</artifactId>
-    <version>3.3</version>
+    <version>3.4</version>
 
     <name>CounterStrikeBot</name>
     <url>https://github.com/yoinc-development/CounterStrikeBot</url>

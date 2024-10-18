@@ -11,7 +11,9 @@ import retakeServer.ServerStatus;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class RetakeService {
@@ -63,10 +65,10 @@ public class RetakeService {
                 return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.mapnotallowed"), locale);
             }
         } catch (AuthenticationException ex) {
-            System.out.println("[CSBot - RetakeService] AuthenticationException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - RetakeService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] AuthenticationException thrown: " + ex.getMessage());
             return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.majorerror"), locale);
         } catch (IOException ex) {
-            System.out.println("[CSBot - RetakeService] IOException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - RetakeService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] IOException thrown: " + ex.getMessage());
             return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.majorerror"), locale);
         }
     }
@@ -80,9 +82,9 @@ public class RetakeService {
                 return messageService.sendEmbedMessageInCorrectChannel(event, RankStats.getRankStatsMessage(resourceBundle, rankStats), locale);
             }
         } catch (SQLException ex) {
-            System.out.println("[CSBot - RetakeService] SQLException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - RetakeService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] SQLException thrown: " + ex.getMessage());
         } catch (NumberFormatException ex) {
-            System.out.println("[CSBot - RetakeService] NumberFormatException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - RetakeService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] NumberFormatException thrown: " + ex.getMessage());
         }
         return new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror"));
     }
@@ -104,7 +106,11 @@ public class RetakeService {
             String status = rcon.command("status");
             rcon.disconnect();
             return new ServerStatus(status);
-        } catch (AuthenticationException | IOException e) {
+        } catch (AuthenticationException ex) {
+            System.out.println("[CSBot - RetakeService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] AuthenticationException thrown: " + ex.getMessage());
+            return null;
+        } catch (IOException ex) {
+            System.out.println("[CSBot - RetakeService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] IOException thrown: " + ex.getMessage());
             return null;
         }
     }

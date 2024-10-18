@@ -12,6 +12,8 @@ import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEven
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -99,7 +101,7 @@ public class CsFunService {
                 return resourceBundle.getString("error.invalidwow");
             }
         } catch (SQLException ex) {
-            System.out.println("[CSBot - CsStatsService] SQLException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] SQLException thrown: " + ex.getMessage());
             return resourceBundle.getString("error.majorerror");
         }
     }
@@ -119,7 +121,7 @@ public class CsFunService {
         try {
             wowList.putAll(dataService.getAllWowEntries());
         } catch (SQLException ex) {
-            System.out.println("[CSBot - CsStatsService] SQLException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] SQLException thrown: " + ex.getMessage());
         }
     }
 

@@ -10,6 +10,8 @@ import org.codehaus.plexus.util.StringUtils;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.ResourceBundle;
@@ -36,16 +38,16 @@ public class CsStatsService {
             ResponseData responseData = getUserResponseData(requestedUser);
             return responseData.getBasicInfo(resourceBundle);
         } catch (InterruptedException ex) {
-            System.out.println("[CSBot - CsStatsService] InterruptedException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] InterruptedException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedException"));
         } catch (IOException ex) {
-            System.out.println("[CSBot - CsStatsService] IOException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] IOException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedException"));
         } catch (NullPointerException | JsonSyntaxException ex) {
-            System.out.println("[CSBot - CsStatsService] NullPointerException / JSonSyntaxException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] NullPointerException / JSonSyntaxException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.privacySettings").replace("%s", requestedUser));
         } catch (SQLException ex) {
-            System.out.println("[CSBot - CsStatsService] SQLException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] SQLException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.majorError"));
         }
     }
@@ -57,16 +59,16 @@ public class CsStatsService {
             String requestedUserTwo = event.getOption("playertwo").getAsString().toLowerCase();
             return comparePlayers(getUserResponseData(requestedUserOne), getUserResponseData(requestedUserTwo));
         } catch (NullPointerException ex) {
-            System.out.println("[CSBot - CsStatsService] NullPointerException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] NullPointerException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.wrongQueryParameters"));
         } catch (InterruptedException ex) {
-            System.out.println("[CSBot - CsStatsService] InterruptedException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] InterruptedException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedException"));
         } catch (IOException ex) {
-            System.out.println("[CSBot - CsStatsService] IOException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] IOException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedException"));
         } catch (SQLException ex) {
-            System.out.println("[CSBot - CsStatsService] SQLException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] SQLException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror"));
         }
     }
