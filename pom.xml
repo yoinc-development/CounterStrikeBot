@@ -7,7 +7,7 @@
 
     <groupId>ch.yoinc</groupId>
     <artifactId>CounterStrikeBot</artifactId>
-    <version>3.4</version>
+    <version>3.5</version>
 
     <name>CounterStrikeBot</name>
     <url>https://github.com/yoinc-development/CounterStrikeBot</url>
@@ -69,10 +69,8 @@
             <artifactId>mockito-core</artifactId>
             <version>5.12.0</version>
         </dependency>
-
-
-
     </dependencies>
+
     <repositories>
         <repository>
             <id>dv8tion</id>
@@ -80,4 +78,5 @@
             <url>https://m2.dv8tion.net/releases</url>
         </repository>
     </repositories>
+
 </project>

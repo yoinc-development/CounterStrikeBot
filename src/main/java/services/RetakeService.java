@@ -77,7 +77,7 @@ public class RetakeService {
         resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
         User user = event.getTarget();
         try {
-            RankStats rankStats = dataService.getRanksStatsForUsername(user.getName());
+            RankStats rankStats = dataService.getRanksStatsForDiscordID(user.getId());
             if (rankStats != null) {
                 return messageService.sendEmbedMessageInCorrectChannel(event, RankStats.getRankStatsMessage(resourceBundle, rankStats), locale);
             }

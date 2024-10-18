@@ -33,10 +33,10 @@ public class CsFunService {
     public String handleWowEvent(UserContextInteractionEvent event, String locale) {
         User targetUser = event.getTarget();
         resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
-        String targetUserName = targetUser.getName();
+        String targetUserID = targetUser.getId();
 
-        if (wowList.containsKey(targetUserName)) {
-            String message = resourceBundle.getString("wow.highlightMessage").replace("%s", targetUserName) + " " + wowList.get(targetUserName);
+        if (wowList.containsKey(targetUserID)) {
+            String message = resourceBundle.getString("wow.highlightMessage").replace("%s", targetUser.getName()) + " " + wowList.get(targetUserID);
             return messageService.sendMessageInCorrectChannel(event, message, locale);
         } else if (targetUser.isBot()) {
             return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.cantwowabot"), locale);
@@ -80,7 +80,7 @@ public class CsFunService {
         resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
 
         String url = event.getOption("url").getAsString();
-        String user = event.getUser().getName();
+        String discordID = event.getUser().getId();
 
         Pattern ytPattern = Pattern.compile("(?:https\\:\\/\\/www\\.youtube\\.com\\/watch\\?v\\=)");
         Pattern dPattern = Pattern.compile("(?:https\\:\\/\\/cdn\\.discordapp\\.com\\/attachments)");
@@ -90,12 +90,12 @@ public class CsFunService {
 
         try {
             if (ytMatcher.find() || dMatcher.find()) {
-                if (wowList.containsKey(user)) {
-                    dataService.updateWowEvent(user, url);
+                if (wowList.containsKey(discordID)) {
+                    dataService.updateWowEvent(discordID, url);
                 } else {
-                    dataService.addWowEvent(user, url);
+                    dataService.addWowEvent(discordID, url);
                 }
-                wowList.put(user, url);
+                wowList.put(discordID, url);
                 return resourceBundle.getString("wow.done");
             } else {
                 return resourceBundle.getString("error.invalidwow");

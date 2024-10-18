@@ -17,16 +17,6 @@ public class DataService {
     public DataService(Properties properties) throws SQLException {
         this.properties = properties;
         connection = DriverManager.getConnection(properties.getProperty("db.url"));
-        setupConnection();
-    }
-
-    private void setupConnection() throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS users (user_id INT AUTO_INCREMENT, username VARCHAR(50) NOT NULL UNIQUE, steamID VARCHAR(250), faceitID VARCHAR(250), discordID VARCHAR(250) UNIQUE, PRIMARY KEY (user_id));");
-        preparedStatement.executeUpdate();
-        preparedStatement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS wow (wow_id INT AUTO_INCREMENT, f_user_id INT NOT NULL, url VARCHAR(200) NOT NULL, PRIMARY KEY(wow_id), FOREIGN KEY (f_user_id) REFERENCES users(user_id));");
-        preparedStatement.executeUpdate();
-        preparedStatement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS retake_watchdog (msg_id VARCHAR(250), time_stamp TIMESTAMP, has_sent_invite BOOL, PRIMARY KEY (msg_id));");
-        preparedStatement.executeUpdate();
     }
 
     public String getDiscordIdForUsername(String username) throws SQLException {
@@ -40,9 +30,9 @@ public class DataService {
         return null;
     }
 
-    public String getSteamIDForUsername(String requestedUser) throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM users WHERE username = ?");
-        preparedStatement.setString(1, requestedUser);
+    public String getSteamIDForDiscordID(String discordID) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM users WHERE discordID = ?");
+        preparedStatement.setString(1, discordID);
         ResultSet resultSet = preparedStatement.executeQuery();
 
         while (resultSet.next()) {
@@ -51,17 +41,17 @@ public class DataService {
         return null;
     }
 
-    public void addWowEvent(String username, String url) throws SQLException {
+    public void addWowEvent(String discordID, String url) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO wow(f_user_id, url) VALUES(?,?)");
-        preparedStatement.setInt(1, getUserIDForUsername(username));
+        preparedStatement.setInt(1, getUserIDForDiscordID(discordID));
         preparedStatement.setString(2, url);
         preparedStatement.executeUpdate();
     }
 
-    public void updateWowEvent(String username, String url) throws SQLException {
+    public void updateWowEvent(String discordID, String url) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement("UPDATE wow SET url = ? WHERE f_user_id = ?");
         preparedStatement.setString(1, url);
-        preparedStatement.setInt(2, getUserIDForUsername(username));
+        preparedStatement.setInt(2, getUserIDForDiscordID(discordID));
         preparedStatement.executeUpdate();
     }
 
@@ -102,17 +92,17 @@ public class DataService {
 
     public HashMap<String, String> getAllWowEntries() throws SQLException {
         HashMap<String, String> returnMap = new HashMap<String, String>();
-        PreparedStatement preparedStatement = connection.prepareStatement("SELECT u.username, w.url FROM wow AS w LEFT JOIN users AS u ON w.f_user_id = u.user_id");
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT u.discordID, w.url FROM wow AS w LEFT JOIN users AS u ON w.f_user_id = u.user_id");
         ResultSet resultSet = preparedStatement.executeQuery();
 
         while (resultSet.next()) {
-            returnMap.put(resultSet.getString("u.username"), resultSet.getString("w.url"));
+            returnMap.put(resultSet.getString("u.discordID"), resultSet.getString("w.url"));
         }
         return returnMap;
     }
 
-    public RankStats getRanksStatsForUsername(String username) throws SQLException, NumberFormatException {
-        String steamId64 = getSteamIDForUsername(username);
+    public RankStats getRanksStatsForDiscordID(String discordID) throws SQLException, NumberFormatException {
+        String steamId64 = getSteamIDForDiscordID(discordID);
         String steamId = SteamUIDConverter.getSteamId(Long.parseLong(steamId64));
 
         PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM lvl_base WHERE steam = ?");
@@ -125,24 +115,24 @@ public class DataService {
         return null;
     }
 
-    private int getUserIDForUsername(String username) throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement("SELECT COUNT(*) FROM users WHERE username = ?");
-        preparedStatement.setString(1, username);
+    private int getUserIDForDiscordID(String discordID) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT COUNT(*) FROM users WHERE discordID = ?");
+        preparedStatement.setString(1, discordID);
         ResultSet resultSet = preparedStatement.executeQuery();
 
         while (resultSet.next()) {
             int returnedRows = resultSet.getInt(1);
             if (returnedRows < 1) {
-                throw new SQLException("More than one user found for the same username.");
+                throw new SQLException("More than one user found for the same discordID.");
             } else if (returnedRows == 0) {
-                preparedStatement = connection.prepareStatement("INSERT INTO users(username) VALUES (?)");
-                preparedStatement.setString(1, username);
+                preparedStatement = connection.prepareStatement("INSERT INTO users(discordID) VALUES (?)");
+                preparedStatement.setString(1, discordID);
                 preparedStatement.executeUpdate();
             }
         }
 
-        preparedStatement = connection.prepareStatement("SELECT user_id FROM users WHERE username = ?");
-        preparedStatement.setString(1, username);
+        preparedStatement = connection.prepareStatement("SELECT user_id FROM users WHERE discordID = ?");
+        preparedStatement.setString(1, discordID);
         resultSet = preparedStatement.executeQuery();
 
         while (resultSet.next()) {
