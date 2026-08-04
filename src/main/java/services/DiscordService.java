@@ -8,8 +8,8 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.interactions.components.ItemComponent;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.components.actionrow.ActionRowChildComponent;
+import net.dv8tion.jda.api.components.buttons.Button;
 import retakeServer.RetakeWatchdog;
 import retakeServer.ServerStatus;
 
@@ -132,7 +132,7 @@ public class DiscordService {
             if (serverStatus != null && !serverStatus.getPlayerNames().isEmpty()) {
                 if (!dataService.hasSentRetakeInvite()) {
                     EmbedBuilder embedBuilder = RetakeWatchdog.getJoinMessage(resourceBundle, getRandomPlayer(serverStatus), serverStatus.getCurrentMap());
-                    ItemComponent button = Button.link(properties.getProperty("server.connectLink"), resourceBundle.getString("serverwatchdog.invite"));
+                    ActionRowChildComponent button = Button.link(properties.getProperty("server.connectLink"), resourceBundle.getString("serverwatchdog.invite"));
                     String messageId = messageService.sendBotEmbedMessageWithAction(jda, embedBuilder, button);
                     dataService.addRetakeInvite(messageId, new Timestamp(System.currentTimeMillis()).toString());
                 }

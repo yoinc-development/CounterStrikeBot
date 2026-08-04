@@ -7,7 +7,8 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.components.ItemComponent;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.actionrow.ActionRowChildComponent;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -76,11 +77,11 @@ public class MessageService {
         }));
     }
 
-    public String sendBotEmbedMessageWithAction(JDA jda, EmbedBuilder embedBuilder, ItemComponent itemComponent) {
+    public String sendBotEmbedMessageWithAction(JDA jda, EmbedBuilder embedBuilder, ActionRowChildComponent itemComponent) {
         TextChannel tc = jda.getGuildById(properties.getProperty("discord.thisIsMyHome"))
                 .getTextChannelById(HOME_CHANNEL);
 
-        return tc.sendMessageEmbeds(embedBuilder.build()).addActionRow(itemComponent).complete().getId();
+        return tc.sendMessageEmbeds(embedBuilder.build()).addComponents(ActionRow.of(itemComponent)).complete().getId();
     }
 
     public void removeBotMessage(JDA jda, String messageId) {
