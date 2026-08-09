@@ -14,7 +14,6 @@ import services.MessageService;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
@@ -38,14 +37,8 @@ public class StartUp {
             //figure out a way to get discord guild locale if possible
             //FYI: Locale.getDefault() returns locale of OS
             ResourceBundle resourceBundle = ResourceBundle.getBundle("localization", new Locale("en"));
-            DataService dataService = null;
-            MessageService messageService = null;
-            try {
-                dataService = new DataService(properties);
-                messageService = new MessageService(properties);
-            } catch (SQLException ex) {
-                System.out.println("[CSBot - StartUp - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] SQL Exception thrown: " + ex.getMessage());
-            }
+            DataService dataService = new DataService(properties);
+            MessageService messageService = new MessageService(properties);
 
             FaceitMatchService faceitMatchService = new FaceitMatchService(properties, dataService);
 

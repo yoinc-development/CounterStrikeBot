@@ -1,6 +1,7 @@
 package services;
 
 import com.google.gson.JsonSyntaxException;
+import http.CarthageException;
 import http.ConnectionBuilder;
 import model.steam.ResponseData;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -9,7 +10,6 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import org.codehaus.plexus.util.StringUtils;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
@@ -46,8 +46,8 @@ public class CsStatsService {
         } catch (NullPointerException | JsonSyntaxException ex) {
             System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] NullPointerException / JSonSyntaxException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.privacySettings").replace("%s", requestedUser));
-        } catch (SQLException ex) {
-            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] SQLException thrown: " + ex.getMessage());
+        } catch (CarthageException ex) {
+            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] CarthageException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.majorError"));
         }
     }
@@ -67,8 +67,8 @@ public class CsStatsService {
         } catch (IOException ex) {
             System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] IOException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedException"));
-        } catch (SQLException ex) {
-            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] SQLException thrown: " + ex.getMessage());
+        } catch (CarthageException ex) {
+            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] CarthageException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror"));
         }
     }
@@ -122,7 +122,7 @@ public class CsStatsService {
         }
     }
 
-    private ResponseData getUserResponseData(String requestedUser) throws NullPointerException, InterruptedException, IOException, SQLException {
+    private ResponseData getUserResponseData(String requestedUser) throws NullPointerException, InterruptedException, IOException, CarthageException {
         ResponseData responseData = null;
         String steamID = dataService.getSteamIDForDiscordID(dataService.getDiscordIdForUsername(requestedUser));
 

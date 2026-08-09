@@ -16,12 +16,14 @@ import java.util.concurrent.CompletableFuture;
 
 public class CounterStrikeBotListener extends ListenerAdapter {
 
+    private DataService dataService;
     private CsStatsService csStatsService;
     private RetakeService retakeService;
     private CsFunService csFunService;
     private DiscordService discordService;
 
     public CounterStrikeBotListener(Properties properties, DataService dataService, MessageService messageService) {
+        this.dataService = dataService;
         csStatsService = new CsStatsService(properties, dataService);
         csFunService = new CsFunService(dataService, messageService);
         retakeService = new RetakeService(properties, dataService, messageService);
@@ -93,6 +95,7 @@ public class CounterStrikeBotListener extends ListenerAdapter {
     @Override
     public void onReady(ReadyEvent event){
         JDA jda = event.getJDA();
+        dataService.setBotID(jda.getSelfUser().getId());
         CompletableFuture.runAsync( () -> discordService.scheduleAllTasks(jda));
     }
 }

@@ -1,52 +1,50 @@
 package services;
 
+import http.CarthageConnection;
+import http.CarthageException;
 import model.retake.RetakePlayer;
 import model.steam.SteamUIDConverter;
 import model.retake.RankStats;
 
+import java.io.IOException;
 import java.sql.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Properties;
 
 public class DataService {
     Properties properties;
     Connection connection;
+    CarthageConnection carthageConnection;
+    String botID;
 
-    public DataService(Properties properties) throws SQLException {
+    public DataService(Properties properties) {
         this.properties = properties;
+        this.carthageConnection = new CarthageConnection(properties);
     }
 
-    public String getDiscordIdForUsername(String username) throws SQLException {
-        connection = DriverManager.getConnection(properties.getProperty("db.url"));
-
-        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM users WHERE username = ?");
-        preparedStatement.setString(1, username);
-        ResultSet resultSet = preparedStatement.executeQuery();
-
-        while (resultSet.next()) {
-            String result = resultSet.getString("discordID");
-            connection.close();
-            return result;
-        }
-        connection.close();
-        return null;
+    /**
+     * The bot's own Discord application ID, sent with every carthage request so the dashboard
+     * can check it against its bots table. Only known once JDA is ready, so this is set
+     * separately from the constructor - see CounterStrikeBotListener#onReady.
+     */
+    public void setBotID(String botID) {
+        this.botID = botID;
     }
 
-    public String getSteamIDForDiscordID(String discordID) throws SQLException {
-        connection = DriverManager.getConnection(properties.getProperty("db.url"));
-        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM users WHERE discordID = ?");
-        preparedStatement.setString(1, discordID);
-        ResultSet resultSet = preparedStatement.executeQuery();
-
-        while (resultSet.next()) {
-            String result = resultSet.getString("steamID");
-            connection.close();
-            return result;
+    public String getDiscordIdForUsername(String username) throws CarthageException {
+        try {
+            return carthageConnection.getDiscordIdForUsername(botID, username);
+        } catch (IOException | InterruptedException ex) {
+            throw new CarthageException("Failed to fetch discordID for username " + username + " from carthage: " + ex.getMessage());
         }
-        connection.close();
-        return null;
+    }
+
+    public String getSteamIDForDiscordID(String discordID) throws CarthageException {
+        try {
+            return carthageConnection.getSteamIDForDiscordID(botID, discordID);
+        } catch (IOException | InterruptedException ex) {
+            throw new CarthageException("Failed to fetch steamID for discordID " + discordID + " from carthage: " + ex.getMessage());
+        }
     }
 
     public void addWowEvent(String discordID, String url) throws SQLException {
@@ -67,43 +65,6 @@ public class DataService {
         connection.close();
     }
 
-    public void addUserToDatabase(String username, String discordID) {
-        try {
-            connection = DriverManager.getConnection(properties.getProperty("db.url"));
-            if (!isDiscordIdInDatabase(discordID)) {
-                PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO users(username, discordID) VALUES(?,?)");
-                preparedStatement.setString(1, username);
-                preparedStatement.setString(2, discordID);
-                preparedStatement.executeUpdate();
-                connection.close();
-            }
-        } catch (SQLException ex) {
-            System.out.println("[CSBot - DataService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] Can't add " + username + " with discordID " + discordID);
-        }
-    }
-
-    private boolean isDiscordIdInDatabase(String discordID) throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement("SELECT u.discordID FROM users AS u WHERE u.discordID = ?");
-        preparedStatement.setString(1, discordID);
-        ResultSet resultSet = preparedStatement.executeQuery();
-
-        while (resultSet.next()) {
-            return true;
-        }
-        return false;
-    }
-
-    public String getUsernameForFaceitID(String faceitID) throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement("SELECT u.username FROM users AS u WHERE u.faceitID = ?");
-        preparedStatement.setString(1, faceitID);
-        ResultSet resultSet = preparedStatement.executeQuery();
-
-        while (resultSet.next()) {
-            return resultSet.getString("u.username");
-        }
-        throw new SQLException("No user for FaceitID could be found");
-    }
-
     public HashMap<String, String> getAllWowEntries() throws SQLException {
         connection = DriverManager.getConnection(properties.getProperty("db.url"));
         HashMap<String, String> returnMap = new HashMap<String, String>();
@@ -117,18 +78,24 @@ public class DataService {
         return returnMap;
     }
 
-    public RankStats getRanksStatsForDiscordID(String discordID) throws SQLException, NumberFormatException {
+    public RankStats getRanksStatsForDiscordID(String discordID) throws SQLException, CarthageException, NumberFormatException {
         String steamId64 = getSteamIDForDiscordID(discordID);
+        if (steamId64 == null) {
+            return null;
+        }
         String steamId = SteamUIDConverter.getSteamId(Long.parseLong(steamId64));
 
+        connection = DriverManager.getConnection(properties.getProperty("db.url"));
         PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM lvl_base WHERE steam = ?");
         preparedStatement.setString(1, steamId);
         ResultSet resultSet = preparedStatement.executeQuery();
 
+        RankStats rankStats = null;
         if (resultSet.next()) {
-            return mapRowToRankStats(resultSet);
+            rankStats = mapRowToRankStats(resultSet);
         }
-        return null;
+        connection.close();
+        return rankStats;
     }
 
     private int getUserIDForDiscordID(String discordID) throws SQLException {

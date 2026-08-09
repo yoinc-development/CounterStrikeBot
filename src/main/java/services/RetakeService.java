@@ -1,5 +1,6 @@
 package services;
 
+import http.CarthageException;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -83,6 +84,8 @@ public class RetakeService {
             }
         } catch (SQLException ex) {
             System.out.println("[CSBot - RetakeService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] SQLException thrown: " + ex.getMessage());
+        } catch (CarthageException ex) {
+            System.out.println("[CSBot - RetakeService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] CarthageException thrown: " + ex.getMessage());
         } catch (NumberFormatException ex) {
             System.out.println("[CSBot - RetakeService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] NumberFormatException thrown: " + ex.getMessage());
         }
