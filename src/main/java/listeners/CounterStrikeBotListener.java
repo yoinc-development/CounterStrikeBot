@@ -18,16 +18,14 @@ public class CounterStrikeBotListener extends ListenerAdapter {
 
     private DataService dataService;
     private CsStatsService csStatsService;
-    private RetakeService retakeService;
     private CsFunService csFunService;
     private DiscordService discordService;
 
     public CounterStrikeBotListener(Properties properties, DataService dataService, MessageService messageService) {
         this.dataService = dataService;
         csStatsService = new CsStatsService(properties, dataService);
-        csFunService = new CsFunService(dataService, messageService);
-        retakeService = new RetakeService(properties, dataService, messageService);
-        discordService = new DiscordService(properties, dataService, retakeService, messageService);
+        csFunService = new CsFunService(messageService);
+        discordService = new DiscordService(properties, dataService, messageService);
     }
 
     @Override
@@ -47,24 +45,9 @@ public class CounterStrikeBotListener extends ListenerAdapter {
                     event.getHook().sendMessageEmbeds(csStatsService.handleCompareEvent(event, locale).build()).queue();
                 }
 
-                if ("map".equals(event.getName())) {
-                    event.deferReply().queue();
-                    event.getHook().sendMessage(retakeService.handleMapEvent(event, locale)).queue();
-                }
-
-                if ("wow".equals(event.getName())) {
-                    event.deferReply().queue();
-                    event.getHook().sendMessage(csFunService.handleAddWowEvent(event, locale)).queue();
-                }
-
                 if ("teams".equals(event.getName())) {
                     event.deferReply().queue();
                     event.getHook().sendMessageEmbeds(csFunService.handleSetTeamsEvent(event, locale).build()).queue();
-                }
-
-                if ("status".equals(event.getName())) {
-                    event.deferReply().queue();
-                    event.getHook().sendMessageEmbeds(retakeService.handleStatusEvent(event, locale).build()).queue();
                 }
             }
         }
@@ -73,29 +56,11 @@ public class CounterStrikeBotListener extends ListenerAdapter {
     @Override
     public void onUserContextInteraction(UserContextInteractionEvent event) {
 
-        /*
-        why is this bad?
-
-        if an enacting user wow's a target user, the message will be displayed in the
-        language of the enacting user. as a "neutral" locale the guild could be used
-        (event.getGuild().getLocale()) but it could result in the same problem.
-         */
-        String locale = discordService.getUserLocale(event);
-
-        if("wow".equals(event.getName())) {
-            event.deferReply().queue();
-            event.getHook().sendMessage(csFunService.handleWowEvent(event, locale)).queue();
-        }
-        if("retake stats".equals(event.getName())){
-            event.deferReply().queue();
-            event.getHook().sendMessageEmbeds(retakeService.handleStatsEvent(event, locale).build()).queue();
-        }
     }
 
     @Override
     public void onReady(ReadyEvent event){
         JDA jda = event.getJDA();
         dataService.setBotID(jda.getSelfUser().getId());
-        CompletableFuture.runAsync( () -> discordService.scheduleAllTasks(jda));
     }
 }

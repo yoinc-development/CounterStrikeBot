@@ -4,45 +4,18 @@ import com.google.common.collect.Lists;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
-import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 
-import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class CsFunService {
-    DataService dataService;
     MessageService messageService;
     ResourceBundle resourceBundle;
-    Map<String, String> wowList;
 
-    public CsFunService(DataService dataService, MessageService messageService) {
-        this.dataService = dataService;
+    public CsFunService(MessageService messageService) {
         this.messageService = messageService;
-        setupWowList();
-    }
-
-    public String handleWowEvent(UserContextInteractionEvent event, String locale) {
-        User targetUser = event.getTarget();
-        resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
-        String targetUserID = targetUser.getId();
-
-        if (wowList.containsKey(targetUserID)) {
-            String message = resourceBundle.getString("wow.highlightMessage").replace("%s", targetUser.getName()) + " " + wowList.get(targetUserID);
-            return messageService.sendMessageInCorrectChannel(event, message, locale);
-        } else if (targetUser.isBot()) {
-            return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.cantwowabot"), locale);
-        } else {
-            return messageService.sendMessageInCorrectChannel(event, resourceBundle.getString("error.hasnowow"), locale);
-        }
     }
 
     public EmbedBuilder handleSetTeamsEvent(SlashCommandInteractionEvent event, String locale) {
@@ -76,36 +49,6 @@ public class CsFunService {
         }
     }
 
-    public String handleAddWowEvent(GenericCommandInteractionEvent event, String locale) {
-        resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
-
-        String url = event.getOption("url").getAsString();
-        String discordID = event.getUser().getId();
-
-        Pattern ytPattern = Pattern.compile("(?:https\\:\\/\\/www\\.youtube\\.com\\/watch\\?v\\=)");
-        Pattern dPattern = Pattern.compile("(?:https\\:\\/\\/cdn\\.discordapp\\.com\\/attachments)");
-
-        Matcher ytMatcher = ytPattern.matcher(url);
-        Matcher dMatcher = dPattern.matcher(url);
-
-        try {
-            if (ytMatcher.find() || dMatcher.find()) {
-                if (wowList.containsKey(discordID)) {
-                    dataService.updateWowEvent(discordID, url);
-                } else {
-                    dataService.addWowEvent(discordID, url);
-                }
-                wowList.put(discordID, url);
-                return resourceBundle.getString("wow.done");
-            } else {
-                return resourceBundle.getString("error.invalidwow");
-            }
-        } catch (SQLException ex) {
-            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] SQLException thrown: " + ex.getMessage());
-            return resourceBundle.getString("error.majorerror");
-        }
-    }
-
     private EmbedBuilder buildEmbed(String teams[]) {
         EmbedBuilder embedBuilder = new EmbedBuilder();
         embedBuilder.setTitle(resourceBundle.getString("teams.title"))
@@ -114,15 +57,6 @@ public class CsFunService {
             embedBuilder.addField(new MessageEmbed.Field("Team " + (i + 1), teams[i], true));
         }
         return embedBuilder;
-    }
-
-    private void setupWowList() {
-        wowList = new HashMap<String, String>();
-        try {
-            wowList.putAll(dataService.getAllWowEntries());
-        } catch (SQLException ex) {
-            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] SQLException thrown: " + ex.getMessage());
-        }
     }
 
     private String[] partitionTeams(List<Member> voiceChatMember, OptionMapping amoutOfTeamsOption) {

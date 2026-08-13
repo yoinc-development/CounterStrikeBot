@@ -5,6 +5,7 @@ import http.CarthageException;
 import http.ConnectionBuilder;
 import model.steam.ResponseData;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import org.codehaus.plexus.util.StringUtils;
@@ -12,9 +13,7 @@ import org.codehaus.plexus.util.StringUtils;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class CsStatsService {
     ResourceBundle resourceBundle;
@@ -32,41 +31,34 @@ public class CsStatsService {
 
     public EmbedBuilder handleStatsEvent(SlashCommandInteractionEvent event, String locale) {
         resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
-        String requestedUser = event.getOption("player").getAsString().toLowerCase();
 
         try {
-            ResponseData responseData = getUserResponseData(requestedUser);
+            ResponseData responseData = getUserResponseData(Objects.requireNonNull(event.getOption("player")).getAsMentionable().getId());
             return responseData.getBasicInfo(resourceBundle);
-        } catch (InterruptedException ex) {
-            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] InterruptedException thrown: " + ex.getMessage());
-            return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedException"));
-        } catch (IOException ex) {
-            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] IOException thrown: " + ex.getMessage());
-            return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedException"));
+        } catch (InterruptedException | IOException ex) {
+            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] InterruptedException / IOException thrown: " + ex.getMessage());
+            return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedexception"));
         } catch (NullPointerException | JsonSyntaxException ex) {
             System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] NullPointerException / JSonSyntaxException thrown: " + ex.getMessage());
-            return new EmbedBuilder().setTitle(resourceBundle.getString("error.privacySettings").replace("%s", requestedUser));
+            return new EmbedBuilder().setTitle(resourceBundle.getString("error.privacysettings"));
         } catch (CarthageException ex) {
             System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] CarthageException thrown: " + ex.getMessage());
-            return new EmbedBuilder().setTitle(resourceBundle.getString("error.majorError"));
+            return new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror"));
         }
     }
 
     public EmbedBuilder handleCompareEvent(SlashCommandInteractionEvent event, String locale) {
         resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
         try {
-            String requestedUserOne = event.getOption("playerone").getAsString().toLowerCase();
-            String requestedUserTwo = event.getOption("playertwo").getAsString().toLowerCase();
-            return comparePlayers(getUserResponseData(requestedUserOne), getUserResponseData(requestedUserTwo));
+            String requestedUserOneID = Objects.requireNonNull(event.getOption("playerone")).getAsMentionable().getId();
+            String requestedUserTwoID = Objects.requireNonNull(event.getOption("playertwo")).getAsMentionable().getId();
+            return comparePlayers(getUserResponseData(requestedUserOneID), getUserResponseData(requestedUserTwoID));
         } catch (NullPointerException ex) {
             System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] NullPointerException thrown: " + ex.getMessage());
-            return new EmbedBuilder().setTitle(resourceBundle.getString("error.wrongQueryParameters"));
-        } catch (InterruptedException ex) {
-            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] InterruptedException thrown: " + ex.getMessage());
-            return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedException"));
-        } catch (IOException ex) {
-            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] IOException thrown: " + ex.getMessage());
-            return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedException"));
+            return new EmbedBuilder().setTitle(resourceBundle.getString("error.wrongqueryparameters"));
+        } catch (InterruptedException | IOException ex) {
+            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] InterruptedException / IOException thrown: " + ex.getMessage());
+            return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedexception"));
         } catch (CarthageException ex) {
             System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] CarthageException thrown: " + ex.getMessage());
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror"));
@@ -78,18 +70,18 @@ public class CsStatsService {
         winsOne = 0;
         winsTwo = 0;
 
-        embedBuilder.setTitle(resourceBundle.getString("compare.title").replace("%s", playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname()).replace("%t",playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname()))
+        embedBuilder.setTitle(resourceBundle.getString("compare.title").replace("%s", playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname()).replace("%t", playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname()))
                 .setAuthor(resourceBundle.getString("stats.author"), "https://www.yoinc.ch")
                 .addField(new MessageEmbed.Field(resourceBundle.getString("stats.kills"), getWinner(playerOneData, playerTwoData, "total_kills", true), true))
-                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.deaths"),getWinner(playerOneData, playerTwoData, "total_deaths", false),true))
-                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.wins"),getWinner(playerOneData, playerTwoData, "total_wins", true),true))
-                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.planted"),getWinner(playerOneData, playerTwoData, "total_planted_bombs", true),true))
-                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.defused"),getWinner(playerOneData, playerTwoData, "total_defused_bombs", true),true))
-                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.damage"),getWinner(playerOneData, playerTwoData, "total_damage_done", true),true));
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.deaths"), getWinner(playerOneData, playerTwoData, "total_deaths", false), true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.wins"), getWinner(playerOneData, playerTwoData, "total_wins", true), true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.planted"), getWinner(playerOneData, playerTwoData, "total_planted_bombs", true), true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.defused"), getWinner(playerOneData, playerTwoData, "total_defused_bombs", true), true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.damage"), getWinner(playerOneData, playerTwoData, "total_damage_done", true), true));
 
-        if(winsOne > winsTwo) {
+        if (winsOne > winsTwo) {
             embedBuilder.setImage(playerOneData.getSteamUserInfo().getPlayers().get(0).getAvatarmedium());
-        } else if(winsTwo > winsOne) {
+        } else if (winsTwo > winsOne) {
             embedBuilder.setImage(playerTwoData.getSteamUserInfo().getPlayers().get(0).getAvatarmedium());
         }
         return embedBuilder;
@@ -99,21 +91,21 @@ public class CsStatsService {
         long playerOneLong = playerOneData.getLongStatsForName(statName);
         long playerTwoLong = playerTwoData.getLongStatsForName(statName);
 
-        if(higherRequired) {
-            if(playerOneLong > playerTwoLong) {
+        if (higherRequired) {
+            if (playerOneLong > playerTwoLong) {
                 winsOne++;
                 return "** :star: " + playerOneLong + " ** vs " + playerTwoLong;
-            } else if(playerTwoLong > playerOneLong) {
+            } else if (playerTwoLong > playerOneLong) {
                 winsTwo++;
                 return playerOneLong + " vs ** " + playerTwoLong + " ** :star: ";
             } else {
                 return resourceBundle.getString("compare.equal").replace("%s", String.valueOf(playerOneLong));
             }
         } else {
-            if(playerOneLong < playerTwoLong) {
+            if (playerOneLong < playerTwoLong) {
                 winsOne++;
                 return "** :star: " + playerOneLong + " ** vs " + playerTwoLong;
-            } else if(playerTwoLong < playerOneLong) {
+            } else if (playerTwoLong < playerOneLong) {
                 winsTwo++;
                 return playerOneLong + " vs ** " + playerTwoLong + " ** :star: ";
             } else {
@@ -122,15 +114,11 @@ public class CsStatsService {
         }
     }
 
-    private ResponseData getUserResponseData(String requestedUser) throws NullPointerException, InterruptedException, IOException, CarthageException {
+    private ResponseData getUserResponseData(String discordID) throws NullPointerException, InterruptedException, IOException, CarthageException {
         ResponseData responseData = null;
-        String steamID = dataService.getSteamIDForDiscordID(dataService.getDiscordIdForUsername(requestedUser));
+        String steamID = dataService.getSteamIDForDiscordID(discordID);
 
-        if(steamID == null || steamID.isEmpty()) {
-            if(StringUtils.isNumeric(requestedUser)) {
-                responseData = connectionBuilder.fetchSteamUserStats(requestedUser);
-            }
-        } else {
+        if (StringUtils.isNotEmpty(steamID)) {
             responseData = connectionBuilder.fetchSteamUserStats(steamID);
         }
         return responseData;

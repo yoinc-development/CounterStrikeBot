@@ -10,12 +10,12 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.HashMap;
 import java.util.Properties;
 
 /**
- * Talks to carthage's bot-facing /bot/** endpoints, which stand in for the direct MySQL access
- * this bot used to have for data that now lives on the dashboard side (steamID/discordID lookups).
- * Carthage always answers with HTTP 200; failures are signalled via a "hasError" flag in the body,
+ * Talks to carthage's bot-facing /bot/** endpoints, which stand in for the direct MySQL access.
+ * Carthage always answers with HTTP 200; failures are signaled via a "hasError" flag in the body,
  * so that must be checked explicitly rather than relying on the status code.
  */
 public class CarthageConnection {
@@ -29,14 +29,6 @@ public class CarthageConnection {
         this.client = HttpClient.newHttpClient();
     }
 
-    public String getDiscordIdForUsername(String botID, String username) throws IOException, InterruptedException, CarthageException {
-        JsonObject body = new JsonObject();
-        body.addProperty("botID", botID);
-        body.addProperty("username", username);
-
-        return extractString(post("/bot/users/discord", body), "discordID");
-    }
-
     public String getSteamIDForDiscordID(String botID, String discordID) throws IOException, InterruptedException, CarthageException {
         JsonObject body = new JsonObject();
         body.addProperty("botID", botID);
@@ -45,7 +37,7 @@ public class CarthageConnection {
         return extractString(post("/bot/users/steam", body), "steamID");
     }
 
-    private JsonObject post(String path, JsonObject body) throws IOException, InterruptedException, CarthageException {
+    private JsonObject post(String path,JsonObject body) throws IOException, InterruptedException, CarthageException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(properties.getProperty("carthage.url") + path))
                 .header("Content-Type", "application/json")
