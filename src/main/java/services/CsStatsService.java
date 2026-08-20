@@ -5,10 +5,10 @@ import http.CarthageException;
 import http.ConnectionBuilder;
 import model.steam.ResponseData;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import org.codehaus.plexus.util.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -30,7 +30,7 @@ public class CsStatsService {
     }
 
     public EmbedBuilder handleStatsEvent(SlashCommandInteractionEvent event, String locale) {
-        resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
+        resourceBundle = ResourceBundle.getBundle("localization", Locale.of(locale));
 
         try {
             ResponseData responseData = getUserResponseData(Objects.requireNonNull(event.getOption("player")).getAsMentionable().getId());
@@ -48,7 +48,7 @@ public class CsStatsService {
     }
 
     public EmbedBuilder handleCompareEvent(SlashCommandInteractionEvent event, String locale) {
-        resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
+        resourceBundle = ResourceBundle.getBundle("localization", Locale.of(locale));
         try {
             String requestedUserOneID = Objects.requireNonNull(event.getOption("playerone")).getAsMentionable().getId();
             String requestedUserTwoID = Objects.requireNonNull(event.getOption("playertwo")).getAsMentionable().getId();
@@ -70,7 +70,7 @@ public class CsStatsService {
         winsOne = 0;
         winsTwo = 0;
 
-        embedBuilder.setTitle(resourceBundle.getString("compare.title").replace("%s", playerOneData.getSteamUserInfo().getPlayers().get(0).getPersonaname()).replace("%t", playerTwoData.getSteamUserInfo().getPlayers().get(0).getPersonaname()))
+        embedBuilder.setTitle(resourceBundle.getString("compare.title").replace("%s", playerOneData.getSteamUserInfo().getPlayers().getFirst().getPersonaname()).replace("%t", playerTwoData.getSteamUserInfo().getPlayers().getFirst().getPersonaname()))
                 .setAuthor(resourceBundle.getString("stats.author"), "https://www.yoinc.ch")
                 .addField(new MessageEmbed.Field(resourceBundle.getString("stats.kills"), getWinner(playerOneData, playerTwoData, "total_kills", true), true))
                 .addField(new MessageEmbed.Field(resourceBundle.getString("stats.deaths"), getWinner(playerOneData, playerTwoData, "total_deaths", false), true))
@@ -80,9 +80,9 @@ public class CsStatsService {
                 .addField(new MessageEmbed.Field(resourceBundle.getString("stats.damage"), getWinner(playerOneData, playerTwoData, "total_damage_done", true), true));
 
         if (winsOne > winsTwo) {
-            embedBuilder.setImage(playerOneData.getSteamUserInfo().getPlayers().get(0).getAvatarmedium());
+            embedBuilder.setImage(playerOneData.getSteamUserInfo().getPlayers().getFirst().getAvatarmedium());
         } else if (winsTwo > winsOne) {
-            embedBuilder.setImage(playerTwoData.getSteamUserInfo().getPlayers().get(0).getAvatarmedium());
+            embedBuilder.setImage(playerTwoData.getSteamUserInfo().getPlayers().getFirst().getAvatarmedium());
         }
         return embedBuilder;
     }
@@ -92,25 +92,22 @@ public class CsStatsService {
         long playerTwoLong = playerTwoData.getLongStatsForName(statName);
 
         if (higherRequired) {
-            if (playerOneLong > playerTwoLong) {
-                winsOne++;
-                return "** :star: " + playerOneLong + " ** vs " + playerTwoLong;
-            } else if (playerTwoLong > playerOneLong) {
-                winsTwo++;
-                return playerOneLong + " vs ** " + playerTwoLong + " ** :star: ";
-            } else {
-                return resourceBundle.getString("compare.equal").replace("%s", String.valueOf(playerOneLong));
-            }
+            return getString(playerOneLong, playerTwoLong, playerOneLong > playerTwoLong, playerTwoLong > playerOneLong);
         } else {
-            if (playerOneLong < playerTwoLong) {
-                winsOne++;
-                return "** :star: " + playerOneLong + " ** vs " + playerTwoLong;
-            } else if (playerTwoLong < playerOneLong) {
-                winsTwo++;
-                return playerOneLong + " vs ** " + playerTwoLong + " ** :star: ";
-            } else {
-                return resourceBundle.getString("compare.equal").replace("%s", String.valueOf(playerOneLong));
-            }
+            return getString(playerOneLong, playerTwoLong, playerOneLong < playerTwoLong, playerTwoLong < playerOneLong);
+        }
+    }
+
+    @NotNull
+    private String getString(long playerOneLong, long playerTwoLong, boolean b, boolean b2) {
+        if (b) {
+            winsOne++;
+            return "** :star: " + playerOneLong + " ** vs " + playerTwoLong;
+        } else if (b2) {
+            winsTwo++;
+            return playerOneLong + " vs ** " + playerTwoLong + " ** :star: ";
+        } else {
+            return resourceBundle.getString("compare.equal").replace("%s", String.valueOf(playerOneLong));
         }
     }
 

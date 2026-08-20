@@ -4,32 +4,29 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.jetbrains.annotations.NotNull;
 import services.*;
 
 import java.util.Properties;
-import java.util.concurrent.CompletableFuture;
 
 public class CounterStrikeBotListener extends ListenerAdapter {
 
-    private DataService dataService;
-    private CsStatsService csStatsService;
-    private CsFunService csFunService;
-    private DiscordService discordService;
+    private final DataService dataService;
+    private final CsStatsService csStatsService;
+    private final CsFunService csFunService;
+    private final DiscordService discordService;
 
-    public CounterStrikeBotListener(Properties properties, DataService dataService, MessageService messageService) {
-        this.dataService = dataService;
+    public CounterStrikeBotListener(Properties properties) {
+        dataService = new DataService(properties);
         csStatsService = new CsStatsService(properties, dataService);
-        csFunService = new CsFunService(messageService);
-        discordService = new DiscordService(properties, dataService, messageService);
+        csFunService = new CsFunService(new MessageService(properties));
+        discordService = new DiscordService();
     }
 
     @Override
-    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
+    public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
 
         String locale = discordService.getUserLocale(event);
 
@@ -54,7 +51,7 @@ public class CounterStrikeBotListener extends ListenerAdapter {
     }
 
     @Override
-    public void onUserContextInteraction(UserContextInteractionEvent event) {
+    public void onUserContextInteraction(@NotNull UserContextInteractionEvent event) {
 
     }
 

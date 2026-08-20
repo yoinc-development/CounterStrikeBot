@@ -10,7 +10,7 @@ public class DataService {
     CarthageConnection carthageConnection;
     String botID;
 
-    public DataService(Properties properties) {;
+    public DataService(Properties properties) {
         this.carthageConnection = new CarthageConnection(properties);
     }
 

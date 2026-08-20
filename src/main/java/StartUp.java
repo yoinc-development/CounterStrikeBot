@@ -7,8 +7,6 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
-import services.DataService;
-import services.MessageService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,12 +27,10 @@ public class StartUp {
             Properties properties = new Properties();
             properties.load(inputStream);
 
-            ResourceBundle resourceBundle = ResourceBundle.getBundle("localization", new Locale("en"));
-            DataService dataService = new DataService(properties);
-            MessageService messageService = new MessageService(properties);
+            ResourceBundle resourceBundle = ResourceBundle.getBundle("localization", Locale.of("en"));
 
             JDA jda = JDABuilder.createDefault(properties.getProperty("discord.apiToken"))
-                    .addEventListeners(new CounterStrikeBotListener(properties, dataService, messageService))
+                    .addEventListeners(new CounterStrikeBotListener(properties))
                     .setChunkingFilter(ChunkingFilter.ALL)
                     .setMemberCachePolicy(MemberCachePolicy.ALL)
                     .enableIntents(GatewayIntent.GUILD_MEMBERS, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.DIRECT_MESSAGES)

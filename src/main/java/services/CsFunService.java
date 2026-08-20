@@ -20,10 +20,9 @@ public class CsFunService {
 
     public EmbedBuilder handleSetTeamsEvent(SlashCommandInteractionEvent event, String locale) {
 
-        resourceBundle = ResourceBundle.getBundle("localization", new Locale(locale));
+        resourceBundle = ResourceBundle.getBundle("localization", Locale.of(locale));
 
-        List<VoiceChannel> allGuildVoiceChannels = event.getGuild().getVoiceChannels();
-        List<Member> toShuffleList = new LinkedList<Member>();
+        List<VoiceChannel> allGuildVoiceChannels = Objects.requireNonNull(event.getGuild()).getVoiceChannels();
 
         boolean isInVC = false;
         VoiceChannel vcToUse = null;
@@ -38,7 +37,7 @@ public class CsFunService {
 
         if(isInVC) {
             if(vcToUse.getMembers().size() >= 2) {
-                toShuffleList.addAll(vcToUse.getMembers());
+                List<Member> toShuffleList = new LinkedList<>(vcToUse.getMembers());
                 Collections.shuffle(toShuffleList);
                 return messageService.sendEmbedMessageInCorrectChannel(event, buildEmbed(partitionTeams(toShuffleList, event.getOption("amountofteams"))) , locale);
             } else {
@@ -49,7 +48,7 @@ public class CsFunService {
         }
     }
 
-    private EmbedBuilder buildEmbed(String teams[]) {
+    private EmbedBuilder buildEmbed(String[] teams) {
         EmbedBuilder embedBuilder = new EmbedBuilder();
         embedBuilder.setTitle(resourceBundle.getString("teams.title"))
                 .setAuthor(resourceBundle.getString("stats.author"), "https://www.yoinc.ch");
@@ -59,16 +58,16 @@ public class CsFunService {
         return embedBuilder;
     }
 
-    private String[] partitionTeams(List<Member> voiceChatMember, OptionMapping amoutOfTeamsOption) {
-        int amoutOfTeams = 2;
+    private String[] partitionTeams(List<Member> voiceChatMember, OptionMapping amountOfTeamsOption) {
+        int amountOfTeams = 2;
 
-        if(amoutOfTeamsOption != null && amoutOfTeamsOption.getAsInt() >= 2) {
-            amoutOfTeams = amoutOfTeamsOption.getAsInt();
+        if(amountOfTeamsOption != null && amountOfTeamsOption.getAsInt() >= 2) {
+            amountOfTeams = amountOfTeamsOption.getAsInt();
         }
 
-        String[] result = new String[amoutOfTeams];
+        String[] result = new String[amountOfTeams];
 
-        int teamSize = Math.round(voiceChatMember.size() / amoutOfTeams);
+        int teamSize = Math.round((float) voiceChatMember.size() / amountOfTeams);
         List<List<Member>> partitionedList = Lists.partition(voiceChatMember, teamSize);
         for (int i = 0; i < partitionedList.size(); i++) {
             result[i] = returnStringOfMembers(partitionedList.get(i));
@@ -80,7 +79,7 @@ public class CsFunService {
         StringBuilder builder = new StringBuilder();
 
         for (Member member : partitionedVoiceChatMembers) {
-            builder.append(member.getUser().getName() + "\n");
+            builder.append(member.getUser().getName()).append("\n");
         }
         return builder.toString();
     }
