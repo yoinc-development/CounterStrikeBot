@@ -1,4 +1,4 @@
-package http;
+package ch.yoinc.http;
 
 public class CarthageException extends Exception {
 

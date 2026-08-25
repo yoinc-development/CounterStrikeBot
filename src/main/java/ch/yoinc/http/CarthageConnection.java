@@ -1,15 +1,18 @@
-package http;
+package ch.yoinc.http;
 
+import ch.yoinc.model.internal.InternalUser;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import jdk.jshell.spi.ExecutionControl;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -36,7 +39,15 @@ public class CarthageConnection {
         return extractString(post("/bot/users/steam", body), "steamID");
     }
 
-    private JsonObject post(String path,JsonObject body) throws IOException, InterruptedException, CarthageException {
+    public List<InternalUser> getAllSteamUsers() throws IOException, InterruptedException, CarthageException {
+        throw new UnsupportedOperationException();
+    }
+
+    public List<String> insertAndGetNewMatches(String matchesString) throws IOException, InterruptedException, CarthageException {
+        throw new UnsupportedOperationException();
+    }
+
+    private JsonObject post(String path, JsonObject body) throws IOException, InterruptedException, CarthageException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(properties.getProperty("carthage.url") + path))
                 .header("Content-Type", "application/json")

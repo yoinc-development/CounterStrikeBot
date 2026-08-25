@@ -1,7 +1,7 @@
-package http;
+package ch.yoinc.http;
 
 import com.google.gson.*;
-import model.steam.ResponseData;
+import ch.yoinc.model.steam.ResponseData;
 
 import java.io.IOException;
 import java.net.URI;
@@ -13,6 +13,8 @@ import java.util.Properties;
 public class ConnectionBuilder {
 
     Properties properties;
+
+    private final String STEAM_API = "https://api.steampowered.com";
 
     public ConnectionBuilder(Properties properties) {
         this.properties = properties;
@@ -26,14 +28,14 @@ public class ConnectionBuilder {
         ResponseData responseData;
 
         request = HttpRequest.newBuilder()
-                .uri(URI.create("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=" + properties.get("steam.api") + "&steamids=" + steamID))
+                .uri(URI.create(STEAM_API + "/ISteamUser/GetPlayerSummaries/v0002/?key=" + properties.get("steam.api") + "&steamids=" + steamID))
                 .build();
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
         responseData = new Gson().fromJson(response.body(), ResponseData.class);
 
         request = HttpRequest.newBuilder()
-                .uri(URI.create("https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v0002/?key=" + properties.get("steam.api") + "&appid=730&steamid=" + steamID))
+                .uri(URI.create(STEAM_API + "/ISteamUserStats/GetUserStatsForGame/v0002/?key=" + properties.get("steam.api") + "&appid=730&steamid=" + steamID))
                 .build();
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
         responseData.setPlayerstats(new Gson().fromJson(response.body(), ResponseData.class).getPlayerstats());

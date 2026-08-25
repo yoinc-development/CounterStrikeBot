@@ -1,4 +1,4 @@
-package model.steam;
+package ch.yoinc.model.steam;
 
 public class SteamUser {
     private long steamid;

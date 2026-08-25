@@ -1,4 +1,4 @@
-package services;
+package ch.yoinc.services;
 
 import com.google.common.collect.Lists;
 import net.dv8tion.jda.api.EmbedBuilder;

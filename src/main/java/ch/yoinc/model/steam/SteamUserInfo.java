@@ -1,4 +1,4 @@
-package model.steam;
+package ch.yoinc.model.steam;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package model.steam;
+package ch.yoinc.model.steam;
 
 import com.google.gson.annotations.SerializedName;
 import net.dv8tion.jda.api.EmbedBuilder;

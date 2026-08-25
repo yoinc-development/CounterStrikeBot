@@ -1,5 +1,6 @@
-package services;
+package ch.yoinc.services;
 
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -18,5 +19,20 @@ public class DiscordService {
             }
         }
         return locale;
+    }
+
+    public EmbedBuilder createEmbedBuilder(String title, String description, String imageUrl, String footer) {
+        return new YoincEmbedBuilder()
+                .setTitle(title)
+                .setDescription(description)
+                .setImage(imageUrl)
+                .setFooter(footer);
+    }
+
+    public static class YoincEmbedBuilder extends EmbedBuilder {
+        public YoincEmbedBuilder() {
+            super();
+            this.setAuthor("Powered by YOINC.", "https://www.yoinc.ch");
+        }
     }
 }

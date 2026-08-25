@@ -1,9 +1,9 @@
-package services;
+package ch.yoinc.services;
 
 import com.google.gson.JsonSyntaxException;
-import http.CarthageException;
-import http.ConnectionBuilder;
-import model.steam.ResponseData;
+import ch.yoinc.http.CarthageException;
+import ch.yoinc.http.ConnectionBuilder;
+import ch.yoinc.model.steam.ResponseData;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
