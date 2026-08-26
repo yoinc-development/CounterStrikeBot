@@ -19,8 +19,8 @@ public class MessageService {
         HOME_CHANNEL = properties.getProperty("discord.channelID");
     }
 
-    public EmbedBuilder sendEmbedMessageInCorrectChannel(GenericCommandInteractionEvent event, EmbedBuilder embedBuilder, String locale) {
-        resourceBundle = ResourceBundle.getBundle("localization", Locale.of(locale));
+    public EmbedBuilder sendEmbedMessageInCorrectChannel(GenericCommandInteractionEvent event, EmbedBuilder embedBuilder) {
+        resourceBundle = ResourceBundle.getBundle("localization", Locale.of("en"));
 
         if(Objects.requireNonNull(event.getGuild()).getId().equals(HOME_GUILD)) {
             if(!event.getMessageChannel().getId().equals(HOME_CHANNEL)) {

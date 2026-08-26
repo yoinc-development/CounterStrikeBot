@@ -59,7 +59,7 @@ public class LeetifyConnection {
         String parameter = steam64ID == null ? "id=" + leetifyID : "steam64_id=" + steam64ID;
         HttpRequest request;
         request = HttpRequest.newBuilder()
-                .uri(URI.create(LEETIFY_API + "v3/profile?" + parameter))
+                .uri(URI.create(LEETIFY_API + "/v3/profile?" + parameter))
                 .header("Authorization", "Bearer " + apiKey)
                 .GET()
                 .build();

@@ -32,23 +32,21 @@ public class CounterStrikeBotListener extends ListenerAdapter {
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
 
-        String locale = discordService.getUserLocale(event);
-
         if (!event.getChannel().getType().equals(ChannelType.PRIVATE)) {
             if (event.getGuild() != null && event.getGuild().getMembers().contains(event.getMember())) {
                 if ("stats".equals(event.getName())) {
                     event.deferReply().queue();
-                    event.getHook().sendMessageEmbeds(csStatsService.handleStatsEvent(event, locale).build()).queue();
+                    event.getHook().sendMessageEmbeds(csStatsService.handleStatsEvent(event).build()).queue();
                 }
 
                 if ("compare".equals(event.getName())) {
                     event.deferReply().queue();
-                    event.getHook().sendMessageEmbeds(csStatsService.handleCompareEvent(event, locale).build()).queue();
+                    event.getHook().sendMessageEmbeds(csStatsService.handleCompareEvent(event).build()).queue();
                 }
 
                 if ("teams".equals(event.getName())) {
                     event.deferReply().queue();
-                    event.getHook().sendMessageEmbeds(csFunService.handleSetTeamsEvent(event, locale).build()).queue();
+                    event.getHook().sendMessageEmbeds(csFunService.handleSetTeamsEvent(event).build()).queue();
                 }
             }
         }

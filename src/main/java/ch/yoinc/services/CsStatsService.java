@@ -29,8 +29,8 @@ public class CsStatsService {
         connectionBuilder = new ConnectionBuilder(properties);
     }
 
-    public EmbedBuilder handleStatsEvent(SlashCommandInteractionEvent event, String locale) {
-        resourceBundle = ResourceBundle.getBundle("localization", Locale.of(locale));
+    public EmbedBuilder handleStatsEvent(SlashCommandInteractionEvent event) {
+        resourceBundle = ResourceBundle.getBundle("localization", Locale.of("en"));
 
         try {
             ResponseData responseData = getUserResponseData(Objects.requireNonNull(event.getOption("player")).getAsMentionable().getId());
@@ -47,8 +47,8 @@ public class CsStatsService {
         }
     }
 
-    public EmbedBuilder handleCompareEvent(SlashCommandInteractionEvent event, String locale) {
-        resourceBundle = ResourceBundle.getBundle("localization", Locale.of(locale));
+    public EmbedBuilder handleCompareEvent(SlashCommandInteractionEvent event) {
+        resourceBundle = ResourceBundle.getBundle("localization", Locale.of("en"));
         try {
             String requestedUserOneID = Objects.requireNonNull(event.getOption("playerone")).getAsMentionable().getId();
             String requestedUserTwoID = Objects.requireNonNull(event.getOption("playertwo")).getAsMentionable().getId();

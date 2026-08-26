@@ -18,9 +18,9 @@ public class CsFunService {
         this.messageService = messageService;
     }
 
-    public EmbedBuilder handleSetTeamsEvent(SlashCommandInteractionEvent event, String locale) {
+    public EmbedBuilder handleSetTeamsEvent(SlashCommandInteractionEvent event) {
 
-        resourceBundle = ResourceBundle.getBundle("localization", Locale.of(locale));
+        resourceBundle = ResourceBundle.getBundle("localization", Locale.of("en"));
 
         List<VoiceChannel> allGuildVoiceChannels = Objects.requireNonNull(event.getGuild()).getVoiceChannels();
 
@@ -39,7 +39,7 @@ public class CsFunService {
             if(vcToUse.getMembers().size() >= 2) {
                 List<Member> toShuffleList = new LinkedList<>(vcToUse.getMembers());
                 Collections.shuffle(toShuffleList);
-                return messageService.sendEmbedMessageInCorrectChannel(event, buildEmbed(partitionTeams(toShuffleList, event.getOption("amountofteams"))) , locale);
+                return messageService.sendEmbedMessageInCorrectChannel(event, buildEmbed(partitionTeams(toShuffleList, event.getOption("amountofteams"))));
             } else {
                 return new EmbedBuilder().setTitle(resourceBundle.getString("error.noteamcreation"));
             }
