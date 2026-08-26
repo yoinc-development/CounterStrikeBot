@@ -2,70 +2,59 @@
 
 [![GitHub release](https://img.shields.io/github/v/release/janesth/CounterStrikeBot)](https://github.com/janesth/CounterStrikeBot)
 
-This bot enables Discord users to join a custom retake server, inform members of a specific guild about Counter Strike stats or lets you share your favourite gaming moment. Each running instance of this bot is independent of each other and be configured to suit your guild's needs.
+This bot lets Discord users check and compare each other's Counter Strike 2 stats, randomly split a voice channel into balanced teams, and get notified in a Discord channel whenever a tracked player finishes a new Leetify-tracked match. Each running instance of this bot is independent of the others and can be configured to suit your guild's needs.
 
 ## Features
 
 ### Slash Commands
 
-- `/map <map>` - allows users to change the current map on the retake server. For users to be allowed to use this command, they must be assigned to a designated role - defined in the properties below. `map` contains the prefered map - also to be defined in a property.
-- `/stas <steamID>` - display this user's Counter Strike stats based on their Steam account. `steamID` is the user's [steam ID](https://www.steamidfinder.com/).
-- `/comapre <steamID1> <steamID2>` - compares two users' Counter Strike stats.
-- `/teams <amount>` - divides the current members of a voice channel into teams. `amount` defines the amount of teams to be created. The requester has to be in a voice chat for this feature to work.
-- `/wow <url>` - allows to set a personal gaming moment (wow moment). `url` has to be either a YouTube or a Discord url.
-- `/status` - returns the current status of the retake server.
+- `/stats <player>` - mention a Discord user to display their Counter Strike 2 stats, resolved from their linked Steam account.
+- `/compare <playerone> <playertwo>` - mention two Discord users to compare their Counter Strike 2 stats head-to-head.
+- `/teams <amountofteams>` - shuffles the members of your current voice channel into `amountofteams` balanced teams (defaults to 2). You have to be in a voice channel yourself for this to work.
 
-### User Context Commands
+Commands are answered in English.
 
-To execute these commands, right-click on a user, choose "Apps" and then one of the followings commands:
+### Home channel redirect
 
-- `wow` - returns this user's wow moment for everyone to see.
-- `retake stats` - return this user's stats on the set retake server.
+If `discord.guildID` and `discord.channelID` are configured, command results triggered outside of that channel (but within that guild) are posted into the configured channel instead, and the requester is told a message was sent there.
 
-### Scheduled Tasks
+### Leetify match notifications
 
-There are two Counter Strike relavant scheduled tasks running:
-
-- A collection task to receive discord user information to enable all users to use relevant commands.
-- A join task to send an invite to the retake server after a user has joined the server.
+Every hour, on the hour, the bot fetches the [Leetify](https://leetify.com) match history for every user Carthage knows a Steam account for, and posts an embed into the `discord.channelID` channel for every match that hasn't been seen before (tracked per-user via Carthage). If multiple tracked users played the same match together, a single embed lists all of them instead of sending one message per player.
 
 ## Configuration
 
-All of these properties are defined in "config.properties". If you choose to run your own instance of the bot, please consider all these properties to be mandatory. Due to privacy reasons we won't be commiting our own properties into this repository.
+All of these properties are defined in a `config.properties` file (see "Run the bot" below for how it's assembled). If you choose to run your own instance of the bot, please consider all of these properties to be mandatory. 
 
-These properties are relevant to connect to Discord and to limit this bot's functionalities by various factors:
+These properties are relevant to connect to Discord and to control where results get posted:
 - `discord.apiToken` - visit the official [Discord Developers Portal](https://discord.com/developers/applications) to receive your individual bot token
-- `discord.allowedRoleId` - the ID of a user group to use commands
-- `discord.thisIsMyHome` - the ID of the server's home base
+- `discord.guildID` - the ID of the guild whose commands should be redirected to a home channel
+- `discord.channelID` - the ID of that guild's home channel; this is also the channel Leetify match notifications are posted to
 
-These properties are currently relevant for the CS2 stats feature. 
-- `steam.api` - Steam Web API key
+These properties are relevant for the Counter Strike stats feature:
+- `steam.api` - Steam Web API key, used to fetch player stats from the Steam Web API
+- `carthage.url` - See "What is Carthage" below.
 
-The following properties were relevant to connect to the retake server and what maps are allowed to be played:
-- `server.ip` - the IP address of the csgo server
-- `server.port` - the port of the csgo server
-- `server.password` - the RCON password of the csgo server (to define in `server.cfg`)
-- `csgo.maps` - a comma seperated list of allowed maps to switch to (like `de_dust,de_tuscan,...`)
-- `server.delay` - a delay (in seconds) to stop users from spamming a map change.
-- `server.connectLink` - a link to an external website to redirect to the game server (see [this reddit thread](https://www.reddit.com/r/discordapp/comments/13kk1bz/discord_has_stopped_to_support_steam_links_why/) as to why a direct link to Steam isn't possible)
-
-The next properties were relevant for a scratched commendation system: 
-- `server.ftp.ip` - the IP address to access the server using FTP
-- `server.ftp.port` - the FTP port
-- `server.ftp.user` - the FTP user (access has to be granted outside of this application)
-- `server.ftp.password` - the FTP password
-
-The last property is relevant regarding the bot's wow feature:
-- `db.url` - the URL of a database for the bot to store all submitted wow clips
+This property is relevant for the Leetify match notifications feature:
+- `leetify.apiToken` - Leetify API key, used to fetch player profiles and match history from the Leetify API
 
 ## Run the bot
 
-TO BE DEFINED
+Build with Maven, selecting the `local` or `prod` profile to decide which properties file gets used as `config.properties`:
+
+```
+mvn package -Plocal
+```
+
+This expects a `src/main/resources/config-local.properties` (or `config-prod.properties` for the `prod` profile) file containing the properties listed above; it gets copied to `config.properties` during the build. Then run the resulting shaded jar with `java -jar`.
 
 ## F.A.Q.
 
-### Can I run the bot myself? Do I have to invite the public instance of the bot to my server??
-It would be recommended to run the bot yourself, even though you are able to invite any running instance of it to your server. The downside of inviting an already running instance to your server would be the lack of customization you could do (your own retake server ip, roles, etc.).
+### Can I run the bot myself? Do I have to invite the public instance of the bot to my server?
+Theoretically both are possible. You have to make sure that you set the variables defined in `config.properties` so your local instance can run.
 
-### Can I fork this and make it better? 
+### What is Carthage?
+Carthage is a simple storage project for our private Discord, containing the link between Discord and Steam acount, given that this information is not available via JDA.
+
+### Can I fork this and make it better?
 Yes.

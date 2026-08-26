@@ -2,6 +2,11 @@
 <project version="4">
   <component name="RemoteRepositoriesConfiguration">
     <remote-repository>
+      <option name="id" value="project-local" />
+      <option name="name" value="Project-local repo for dependencies with no public repo (e.g. rkon-core)" />
+      <option name="url" value="file://C:\Users\janes\workspace\CounterStrikeBot/local-repo" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="dv8tion" />
       <option name="name" value="m2-dv8tion" />
       <option name="url" value="https://m2.dv8tion.net/releases" />

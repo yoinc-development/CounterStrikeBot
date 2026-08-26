@@ -38,3 +38,9 @@ out/
 ## OS X
 ##############################
 .DS_Store
+
+##############################
+## Project-specific ignores
+##############################
+/src/main/resources/config-local.properties
+/src/main/resources/config-prod.properties
