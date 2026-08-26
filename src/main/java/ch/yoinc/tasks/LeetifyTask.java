@@ -24,12 +24,6 @@ public class LeetifyTask implements ScheduledTask {
         dataService.setBotID(jda.getSelfUser().getId());
         leetifyConnection = new LeetifyConnection(properties);
 
-        DiscordService discordService = new DiscordService();
-
-        String DEFAULT_LEETIFY_URL = "https://leetify.com/app/match-details/%s/overview";
-        String DEFAULT_MAP_LOGO_URL = "https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/main/images/%s.png";
-        String DEFAULT_MAP_URL = "https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/main/images/thumbs/%s_1_png.png";
-
         List<InternalUser> internalUsers = dataService.getAllSteamUsers();
 
         //this map contains all newly played matches found during the next run of the
@@ -41,66 +35,36 @@ public class LeetifyTask implements ScheduledTask {
 
         for (String matchID : newlyPlayedMatches.keySet()) {
             List<LeetifyMatchResponse> matches = newlyPlayedMatches.get(matchID);
+            EmbedBuilder matchEmbed = new EmbedBuilder();
             if (matches.size() > 1) {
                 LeetifyMatchResponse match = matches.getFirst();
-                String title = "";
-                Color color = Color.BLUE;
-                String imageUrl = "";
-                String thumbnailUrl = "";
-                String footer = "";
-
                 List<String> playerNames = new ArrayList<>();
                 for (LeetifyMatchResponse playerMatch : matches) {
                     playerNames.add(playerMatch.stats.getFirst().name);
                 }
                 String players = String.join(", ", playerNames);
-                String description = "";
 
                 switch (match.data_source) {
                     case "faceit":
-                        title = "New Faceit Match";
-                        color = Color.ORANGE;
-                        description = players + " played a new Faceit match together.";
-                        imageUrl = DEFAULT_MAP_URL.replace("%s", match.map_name);
-                        thumbnailUrl = DEFAULT_MAP_LOGO_URL.replace("%s", match.map_name);
-                        footer = "Finished at " + match.finished_at;
+                        matchEmbed = returnFilledEmbed("New Faceit Match",
+                                Color.ORANGE, players + " played a new Faceit match together.",
+                                match.map_name, matchID, "Finished at " + match.finished_at);
                         break;
-                    case "wingman":
                     case "matchmaking_wingman":
-                        title = "New Wingman Match";
-                        color = Color.GREEN;
-                        description = players + " played a new Wingman match together.";
-                        imageUrl = DEFAULT_MAP_URL.replace("%s", match.map_name);
-                        thumbnailUrl = DEFAULT_MAP_LOGO_URL.replace("%s", match.map_name);
-                        footer = "Finished at " + match.finished_at;
-                        break;
-                    case "premier":
-                        title = "New Premier Match";
-                        color = Color.YELLOW;
-                        description = players + " played a new Premier match together.";
-                        imageUrl = DEFAULT_MAP_URL.replace("%s", match.map_name);
-                        thumbnailUrl = DEFAULT_MAP_LOGO_URL.replace("%s", match.map_name);
-                        footer = "Finished at " + match.finished_at;
+                        matchEmbed = returnFilledEmbed("New Wingman Match",
+                                Color.GREEN, players + " played a new Wingman match together.",
+                                match.map_name, matchID, "Finished at " + match.finished_at);
                         break;
                     case "matchmaking":
-                        title = "New Competitive Match";
-                        color = Color.RED;
-                        description = players + " played a new Competitive match together.";
-                        imageUrl = DEFAULT_MAP_URL.replace("%s", match.map_name);
-                        thumbnailUrl = DEFAULT_MAP_LOGO_URL.replace("%s", match.map_name);
-                        footer = "Finished at " + match.finished_at;
+                        matchEmbed = returnFilledEmbed("New Competitive Match",
+                                Color.YELLOW, players + " played a new Competitive match together.",
+                                match.map_name, matchID, "Finished at " + match.finished_at);
                         break;
                 }
 
-                EmbedBuilder updateMessage = discordService.createEmbedBuilder(title, description, imageUrl, footer);
-                updateMessage
-                        .setTitle(title, DEFAULT_LEETIFY_URL.replace("%s", matchID))
-                        .setColor(color)
-                        .setThumbnail(thumbnailUrl);
-
                 for (LeetifyMatchResponse playerMatch : matches) {
                     LeetifyPlayerStatsResponse stats = playerMatch.stats.getFirst();
-                    updateMessage.addField(
+                    matchEmbed.addField(
                             stats.name,
                             "Kills: " + stats.total_kills +
                                     "\nDeaths: " + stats.total_deaths +
@@ -111,65 +75,53 @@ public class LeetifyTask implements ScheduledTask {
                             true
                     );
                 }
-                Objects.requireNonNull(jda.getTextChannelById(properties.getProperty("discord.channelID"))).sendMessageEmbeds(updateMessage.build()).queue();
+                Objects.requireNonNull(jda.getTextChannelById(properties.getProperty("discord.channelID"))).sendMessageEmbeds(matchEmbed.build()).queue();
             } else {
                 LeetifyMatchResponse match = matches.getFirst();
-                String title = "";
-                Color color = Color.BLUE;
-                String description = "";
-                String imageUrl = "";
-                String thumbnailUrl = "";
-                String footer = "";
 
                 switch (match.data_source) {
                     case "faceit":
-                        title = "New Faceit Match";
-                        color = Color.ORANGE;
-                        description = match.stats.getFirst().name + " played a new Faceit match.";
-                        imageUrl = DEFAULT_MAP_URL.replace("%s", match.map_name);
-                        thumbnailUrl = DEFAULT_MAP_LOGO_URL.replace("%s", match.map_name);
-                        footer = "Finished at " + match.finished_at;
+                        matchEmbed = returnFilledEmbed("New Faceit Match", Color.ORANGE,
+                                match.stats.getFirst().name + " played a new Faceit match.",
+                                match.map_name, matchID, "Finished at " + match.finished_at);
                         break;
-                    case "wingman":
                     case "matchmaking_wingman":
-                        title = "New Wingman Match";
-                        color = Color.GREEN;
-                        description = match.stats.getFirst().name + " played a new Wingman match.";
-                        imageUrl = DEFAULT_MAP_URL.replace("%s", match.map_name);
-                        thumbnailUrl = DEFAULT_MAP_LOGO_URL.replace("%s", match.map_name);
-                        footer = "Finished at " + match.finished_at;
-                        break;
-                    case "premier":
-                        title = "New Premier Match";
-                        color = Color.YELLOW;
-                        description = match.stats.getFirst().name + " played a new Premier match.";
-                        imageUrl = DEFAULT_MAP_URL.replace("%s", match.map_name);
-                        thumbnailUrl = DEFAULT_MAP_LOGO_URL.replace("%s", match.map_name);
-                        footer = "Finished at " + match.finished_at;
+                        matchEmbed = returnFilledEmbed("New Wingman Match", Color.GREEN,
+                                match.stats.getFirst().name + " played a new Wingman match.",
+                                match.map_name, matchID, "Finished at " + match.finished_at);
                         break;
                     case "matchmaking":
-                        title = "New Competitive Match";
-                        color = Color.RED;
-                        description = match.stats.getFirst().name + " played a new Competitive match.";
-                        imageUrl = DEFAULT_MAP_URL.replace("%s", match.map_name);
-                        thumbnailUrl = DEFAULT_MAP_LOGO_URL.replace("%s", match.map_name);
-                        footer = "Finished at " + match.finished_at;
+                        matchEmbed = returnFilledEmbed("New Competitive Match", Color.YELLOW,
+                                match.stats.getFirst().name + " played a new Competitive match.",
+                                match.map_name, matchID, "Finished at " + match.finished_at);
                         break;
                 }
-                EmbedBuilder updateMessage = discordService.createEmbedBuilder(title, description, imageUrl, footer);
-                updateMessage
-                        .setTitle(title, DEFAULT_LEETIFY_URL.replace("%s", matchID))
-                        .setColor(color)
-                        .setThumbnail(thumbnailUrl)
+                matchEmbed
                         .addField("Kills", Integer.toString(match.stats.getFirst().total_kills), true)
                         .addField("Deaths", Integer.toString(match.stats.getFirst().total_deaths), true)
                         .addField("ADR", Double.toString(match.stats.getFirst().dpr), true)
                         .addField("Rating", Double.toString(match.stats.getFirst().leetify_rating), true)
                         .addField("CT Rating", Double.toString(match.stats.getFirst().ct_leetify_rating), true)
                         .addField("T Rating", Double.toString(match.stats.getFirst().t_leetify_rating), true);
-                Objects.requireNonNull(jda.getTextChannelById(properties.getProperty("discord.channelID"))).sendMessageEmbeds(updateMessage.build()).queue();
+                Objects.requireNonNull(jda.getTextChannelById(properties.getProperty("discord.channelID"))).sendMessageEmbeds(matchEmbed.build()).queue();
             }
         }
+    }
+
+    private EmbedBuilder returnFilledEmbed(String title, Color color, String description, String map_name, String matchID, String footer) {
+        DiscordService discordService = new DiscordService();
+
+        String DEFAULT_LEETIFY_URL = "https://leetify.com/app/match-details/%s/overview";
+        String DEFAULT_MAP_LOGO_URL = "https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/main/images/%s.png";
+        String DEFAULT_MAP_URL = "https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/main/images/thumbs/%s_1_png.png";
+
+        EmbedBuilder returnEmbed = discordService.createEmbedBuilder(title, description, DEFAULT_MAP_URL.replace("%s", map_name), footer);
+        returnEmbed
+                .setTitle(title, DEFAULT_LEETIFY_URL.replace("%s", matchID))
+                .setColor(color)
+                .setThumbnail(DEFAULT_MAP_LOGO_URL.replace("%s", map_name));
+
+        return returnEmbed;
     }
 
     private HashMap<String, List<LeetifyMatchResponse>> setNewlyPlayedMatches(List<InternalUser> steamInternalUsers) {
