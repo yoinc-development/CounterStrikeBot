@@ -5,9 +5,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import jdk.jshell.spi.ExecutionControl;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -39,12 +40,20 @@ public class CarthageConnection {
         return extractString(post("/bot/users/steam", body), "steamID");
     }
 
-    public List<InternalUser> getAllSteamUsers() throws IOException, InterruptedException, CarthageException {
-        throw new UnsupportedOperationException();
+    public List<InternalUser> getAllSteamUsers(String botID) throws IOException, InterruptedException, CarthageException {
+        JsonObject body = new JsonObject();
+        body.addProperty("botID", botID);
+
+        return extractList(post("/bot/steam", body), "users", new TypeToken<List<InternalUser>>() {}.getType());
     }
 
-    public List<String> insertAndGetNewMatches(String matchesString) throws IOException, InterruptedException, CarthageException {
-        throw new UnsupportedOperationException();
+    public List<String> insertAndGetNewMatches(List<String> matches, Integer userID, String botID) throws IOException, InterruptedException, CarthageException {
+        JsonObject body = new JsonObject();
+        body.addProperty("botID", botID);
+        body.addProperty("userID", userID);
+        body.add("matches", gson.toJsonTree(matches));
+
+        return extractList(put("/bot/match", body), "newMatches", new TypeToken<List<String>>() {}.getType());
     }
 
     private JsonObject post(String path, JsonObject body) throws IOException, InterruptedException, CarthageException {
@@ -54,6 +63,20 @@ public class CarthageConnection {
                 .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(body)))
                 .build();
 
+        return send(request, path);
+    }
+
+    private JsonObject put(String path, JsonObject body) throws IOException, InterruptedException, CarthageException {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(properties.getProperty("carthage.url") + path))
+                .header("Content-Type", "application/json")
+                .PUT(HttpRequest.BodyPublishers.ofString(gson.toJson(body)))
+                .build();
+
+        return send(request, path);
+    }
+
+    private JsonObject send(HttpRequest request, String path) throws IOException, InterruptedException, CarthageException {
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() != 200) {
@@ -79,5 +102,12 @@ public class CarthageConnection {
             return responseBody.get(field).getAsString();
         }
         return null;
+    }
+
+    private <T> List<T> extractList(JsonObject responseBody, String field, Type type) {
+        if (responseBody.has(field) && !responseBody.get(field).isJsonNull()) {
+            return gson.fromJson(responseBody.get(field), type);
+        }
+        return List.of();
     }
 }

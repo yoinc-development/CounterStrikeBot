@@ -50,13 +50,13 @@ public class LeetifyPlayerStatsResponse {
     public Integer shots_hit_foe_head;
 
     @SerializedName("utility_on_death_avg")
-    public Integer utility_on_death_avg;
+    public Double utility_on_death_avg;
 
     @SerializedName("he_foes_damage_avg")
-    public Integer he_foes_damage_avg;
+    public Double he_foes_damage_avg;
 
     @SerializedName("he_friends_damage_avg")
-    public Integer he_friends_damage_avg;
+    public Double he_friends_damage_avg;
 
     @SerializedName("he_thrown")
     public Integer he_thrown;

@@ -19,14 +19,14 @@ public class CounterStrikeBotListener extends ListenerAdapter {
     private final CsStatsService csStatsService;
     private final DataService dataService;
     private final DiscordService discordService;
-    //private final TaskScheduler taskScheduler;
+    private final TaskScheduler taskScheduler;
 
     public CounterStrikeBotListener(Properties properties) {
         dataService = new DataService(properties);
         csStatsService = new CsStatsService(properties, dataService);
         csFunService = new CsFunService(new MessageService(properties));
         discordService = new DiscordService();
-        //taskScheduler = new TaskScheduler(properties);
+        taskScheduler = new TaskScheduler(properties);
     }
 
     @Override
@@ -63,6 +63,6 @@ public class CounterStrikeBotListener extends ListenerAdapter {
     public void onReady(ReadyEvent event) {
         JDA jda = event.getJDA();
         dataService.setBotID(jda.getSelfUser().getId());
-        //CompletableFuture.runAsync(() -> taskScheduler.startAllTasks(jda));
+        CompletableFuture.runAsync(() -> taskScheduler.startAllTasks(jda));
     }
 }

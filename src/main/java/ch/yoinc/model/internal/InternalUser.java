@@ -4,6 +4,9 @@ import com.google.gson.annotations.SerializedName;
 
 public class InternalUser {
 
+    @SerializedName("userID")
+    public Integer userID;
+
     @SerializedName("username")
     public String username;
 

@@ -4,10 +4,8 @@ import ch.yoinc.http.CarthageConnection;
 import ch.yoinc.http.CarthageException;
 import ch.yoinc.model.internal.InternalUser;
 import ch.yoinc.model.leetify.LeetifyMatchResponse;
-import okhttp3.internal.Internal;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -33,20 +31,17 @@ public class DataService {
 
     public List<InternalUser> getAllSteamUsers() throws CarthageException {
         try {
-            return carthageConnection.getAllSteamUsers();
+            return carthageConnection.getAllSteamUsers(botID);
         } catch (IOException | InterruptedException ex) {
             throw new CarthageException("Failed to fetch all steam users from carthage: " + ex.getMessage());
         }
     }
 
-    public List<String> insertAndGetNewMatches(List<LeetifyMatchResponse> matches) throws CarthageException {
+    public List<String> insertAndGetNewMatches(List<LeetifyMatchResponse> matches, Integer userID) throws CarthageException {
         try {
-            if(matches != null || !matches.isEmpty()) {
-                StringBuilder matchesString = new StringBuilder();
-                for(LeetifyMatchResponse match : matches) {
-                    matchesString.append("\"").append(match.id).append("\",\n");
-                }
-                return carthageConnection.insertAndGetNewMatches(matchesString.toString());
+            if (matches != null && !matches.isEmpty()) {
+                List<String> matchIDs = matches.stream().map(match -> match.id).toList();
+                return carthageConnection.insertAndGetNewMatches(matchIDs, userID, botID);
             }
         } catch (IOException | InterruptedException ex) {
             throw new CarthageException("Failed to insert and get new matches from carthage: " + ex.getMessage());
