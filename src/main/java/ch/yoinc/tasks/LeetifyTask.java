@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.JDA;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.Locale;
 
 public class LeetifyTask implements ScheduledTask {
 
@@ -69,9 +70,9 @@ public class LeetifyTask implements ScheduledTask {
                             "Kills: " + stats.total_kills +
                                     "\nDeaths: " + stats.total_deaths +
                                     "\nADR: " + stats.dpr +
-                                    "\nRating: " + stats.leetify_rating +
-                                    "\nCT Rating: " + stats.ct_leetify_rating +
-                                    "\nT Rating: " + stats.t_leetify_rating,
+                                    "\nRating: " + formatRating(stats.leetify_rating) +
+                                    "\nCT Rating: " + formatRating(stats.ct_leetify_rating) +
+                                    "\nT Rating: " + formatRating(stats.t_leetify_rating),
                             true
                     );
                 }
@@ -100,9 +101,9 @@ public class LeetifyTask implements ScheduledTask {
                         .addField("Kills", Integer.toString(match.stats.getFirst().total_kills), true)
                         .addField("Deaths", Integer.toString(match.stats.getFirst().total_deaths), true)
                         .addField("ADR", Double.toString(match.stats.getFirst().dpr), true)
-                        .addField("Rating", Double.toString(match.stats.getFirst().leetify_rating), true)
-                        .addField("CT Rating", Double.toString(match.stats.getFirst().ct_leetify_rating), true)
-                        .addField("T Rating", Double.toString(match.stats.getFirst().t_leetify_rating), true);
+                        .addField("Rating", formatRating(match.stats.getFirst().leetify_rating), true)
+                        .addField("CT Rating", formatRating(match.stats.getFirst().ct_leetify_rating), true)
+                        .addField("T Rating", formatRating(match.stats.getFirst().t_leetify_rating), true);
                 Objects.requireNonNull(jda.getTextChannelById(properties.getProperty("discord.channelID"))).sendMessageEmbeds(matchEmbed.build()).queue();
             }
         }
@@ -155,5 +156,12 @@ public class LeetifyTask implements ScheduledTask {
     @Override
     public String getTaskName() {
         return "LeetifyTask";
+    }
+
+    private static String formatRating(Double rating) {
+        if (rating == null) {
+            return "n/a";
+        }
+        return String.format(Locale.US, "%.2f", rating * 100.0);
     }
 }

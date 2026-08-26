@@ -85,6 +85,22 @@ class LeetifyTaskTest {
     }
 
     // ---------------------------------------------------------------------
+    // formatRating
+    // ---------------------------------------------------------------------
+
+    @Test
+    void formatRating_scalesToPercentageAndRoundsToTwoDecimals() throws Exception {
+        assertEquals("1.23", invokeFormatRating(0.0123));
+        assertEquals("5.32", invokeFormatRating(0.0532));
+        assertEquals("-0.71", invokeFormatRating(-0.0071));
+    }
+
+    @Test
+    void formatRating_returnsPlaceholder_whenRatingIsMissing() throws Exception {
+        assertEquals("n/a", invokeFormatRating(null));
+    }
+
+    // ---------------------------------------------------------------------
     // setNewlyPlayedMatches
     // ---------------------------------------------------------------------
 
@@ -182,6 +198,12 @@ class LeetifyTaskTest {
         method.setAccessible(true);
         EmbedBuilder builder = (EmbedBuilder) method.invoke(task, title, color, description, mapName, matchId, footer);
         return builder.build();
+    }
+
+    private String invokeFormatRating(Double rating) throws Exception {
+        Method method = LeetifyTask.class.getDeclaredMethod("formatRating", Double.class);
+        method.setAccessible(true);
+        return (String) method.invoke(null, rating);
     }
 
     @SuppressWarnings("unchecked")
