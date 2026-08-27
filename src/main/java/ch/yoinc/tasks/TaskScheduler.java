@@ -67,6 +67,6 @@ public class TaskScheduler {
             }
         };
 
-        timer.schedule(timerTask, initialDelay, interval);
+        timer.scheduleAtFixedRate(timerTask, initialDelay, interval);
     }
 }
