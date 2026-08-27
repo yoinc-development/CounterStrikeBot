@@ -37,31 +37,27 @@ public class LeetifyTask implements ScheduledTask {
         for (String matchID : newlyPlayedMatches.keySet()) {
             List<LeetifyMatchResponse> matches = newlyPlayedMatches.get(matchID);
             EmbedBuilder matchEmbed = new EmbedBuilder();
+            LeetifyMatchResponse match = matches.getFirst();
+            boolean hasWon = match.stats.getFirst().rounds_won >= match.stats.getFirst().rounds_lost; //tie is a victory, change my mind
             if (matches.size() > 1) {
-                LeetifyMatchResponse match = matches.getFirst();
                 List<String> playerNames = new ArrayList<>();
                 for (LeetifyMatchResponse playerMatch : matches) {
                     playerNames.add(playerMatch.stats.getFirst().name);
                 }
                 String players = String.join(", ", playerNames);
 
-                switch (match.data_source) {
-                    case "faceit":
-                        matchEmbed = returnFilledEmbed("New Faceit Match",
-                                Color.ORANGE, players + " played a new Faceit match together.",
-                                match.map_name, matchID, "Finished at " + match.finished_at);
-                        break;
-                    case "matchmaking_wingman":
-                        matchEmbed = returnFilledEmbed("New Wingman Match",
-                                Color.GREEN, players + " played a new Wingman match together.",
-                                match.map_name, matchID, "Finished at " + match.finished_at);
-                        break;
-                    case "matchmaking":
-                        matchEmbed = returnFilledEmbed("New Competitive Match",
-                                Color.YELLOW, players + " played a new Competitive match together.",
-                                match.map_name, matchID, "Finished at " + match.finished_at);
-                        break;
-                }
+                matchEmbed = switch (match.data_source) {
+                    case "faceit" -> returnFilledEmbed("New Faceit Match",
+                            Color.ORANGE, players + " played a Faceit match together and " + ((hasWon) ? "**won**." :  "**lost**."),
+                            match.map_name, matchID, "Finished at " + match.finished_at);
+                    case "matchmaking_wingman" -> returnFilledEmbed("New Wingman Match",
+                            Color.GREEN, players + " played a Wingman match together and " + ((hasWon) ? "**won**." :  "**lost**."),
+                            match.map_name, matchID, "Finished at " + match.finished_at);
+                    case "matchmaking" -> returnFilledEmbed("New Competitive Match",
+                            Color.YELLOW, players + " played a Competitive match together and " + ((hasWon) ? "**won**." :  "**lost**."),
+                            match.map_name, matchID, "Finished at " + match.finished_at);
+                    default -> matchEmbed;
+                };
 
                 for (LeetifyMatchResponse playerMatch : matches) {
                     LeetifyPlayerStatsResponse stats = playerMatch.stats.getFirst();
@@ -76,27 +72,19 @@ public class LeetifyTask implements ScheduledTask {
                             true
                     );
                 }
-                Objects.requireNonNull(jda.getTextChannelById(properties.getProperty("discord.channelID"))).sendMessageEmbeds(matchEmbed.build()).queue();
             } else {
-                LeetifyMatchResponse match = matches.getFirst();
-
-                switch (match.data_source) {
-                    case "faceit":
-                        matchEmbed = returnFilledEmbed("New Faceit Match", Color.ORANGE,
-                                match.stats.getFirst().name + " played a new Faceit match.",
-                                match.map_name, matchID, "Finished at " + match.finished_at);
-                        break;
-                    case "matchmaking_wingman":
-                        matchEmbed = returnFilledEmbed("New Wingman Match", Color.GREEN,
-                                match.stats.getFirst().name + " played a new Wingman match.",
-                                match.map_name, matchID, "Finished at " + match.finished_at);
-                        break;
-                    case "matchmaking":
-                        matchEmbed = returnFilledEmbed("New Competitive Match", Color.YELLOW,
-                                match.stats.getFirst().name + " played a new Competitive match.",
-                                match.map_name, matchID, "Finished at " + match.finished_at);
-                        break;
-                }
+                matchEmbed = switch (match.data_source) {
+                    case "faceit" -> returnFilledEmbed("New Faceit Match", Color.ORANGE,
+                            match.stats.getFirst().name + " played a Faceit match and " + ((hasWon) ? "**won**." :  "**lost**."),
+                            match.map_name, matchID, "Finished at " + match.finished_at);
+                    case "matchmaking_wingman" -> returnFilledEmbed("New Wingman Match", Color.GREEN,
+                            match.stats.getFirst().name + " played a Wingman match and " + ((hasWon) ? "**won**." :  "**lost**."),
+                            match.map_name, matchID, "Finished at " + match.finished_at);
+                    case "matchmaking" -> returnFilledEmbed("New Competitive Match", Color.YELLOW,
+                            match.stats.getFirst().name + " played a Competitive match and " + ((hasWon) ? "**won**." :  "**lost**."),
+                            match.map_name, matchID, "Finished at " + match.finished_at);
+                    default -> matchEmbed;
+                };
                 matchEmbed
                         .addField("Kills", Integer.toString(match.stats.getFirst().total_kills), true)
                         .addField("Deaths", Integer.toString(match.stats.getFirst().total_deaths), true)
@@ -104,8 +92,8 @@ public class LeetifyTask implements ScheduledTask {
                         .addField("Rating", formatRating(match.stats.getFirst().leetify_rating), true)
                         .addField("CT Rating", formatRating(match.stats.getFirst().ct_leetify_rating), true)
                         .addField("T Rating", formatRating(match.stats.getFirst().t_leetify_rating), true);
-                Objects.requireNonNull(jda.getTextChannelById(properties.getProperty("discord.channelID"))).sendMessageEmbeds(matchEmbed.build()).queue();
             }
+            Objects.requireNonNull(jda.getTextChannelById(properties.getProperty("discord.channelID"))).sendMessageEmbeds(matchEmbed.build()).queue();
         }
     }
 
