@@ -21,9 +21,13 @@ public class LeetifyTask implements ScheduledTask {
 
     @Override
     public void execute(JDA jda, Properties properties) {
-        dataService = new DataService(properties);
+        if (dataService == null) {
+            dataService = new DataService(properties);
+        }
+        if (leetifyConnection == null) {
+            leetifyConnection = new LeetifyConnection(properties);
+        }
         dataService.setBotID(jda.getSelfUser().getId());
-        leetifyConnection = new LeetifyConnection(properties);
 
         List<InternalUser> internalUsers = dataService.getAllSteamUsers();
 
