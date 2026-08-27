@@ -88,7 +88,9 @@ public class LeetifyConnection {
                 return gson.fromJson(response.body(), new TypeToken<List<LeetifyMatchResponse>>() {
                 }.getType());
             }
-            System.out.println("[CSBot - LeetifyConnection - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] getPlayerMatchHistory for " + parameter + " returned status " + response.statusCode() + ", body: " + response.body());
+            if(response.statusCode() != 404) {
+                System.out.println("[CSBot - LeetifyConnection - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] getPlayerMatchHistory for " + parameter + " returned status " + response.statusCode() + ", body: " + response.body());
+            }
         } catch (IOException | InterruptedException ex) {
             System.out.println("[CSBot - LeetifyConnection - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] IOException / InterruptedException thrown: " + ex.getMessage());
         }
