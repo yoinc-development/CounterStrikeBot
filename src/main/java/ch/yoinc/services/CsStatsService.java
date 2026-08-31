@@ -18,9 +18,6 @@ import java.util.*;
 public class CsStatsService {
     ResourceBundle resourceBundle;
 
-    //I know. I don't like it either.
-    private int winsOne;
-    private int winsTwo;
     ConnectionBuilder connectionBuilder;
     DataService dataService;
 
@@ -66,45 +63,43 @@ public class CsStatsService {
     }
 
     private EmbedBuilder comparePlayers(ResponseData playerOneData, ResponseData playerTwoData) {
-        EmbedBuilder embedBuilder = new EmbedBuilder();
-        winsOne = 0;
-        winsTwo = 0;
+        int[] wins = new int[2]; // wins[0] = playerOne, wins[1] = playerTwo
 
-        embedBuilder.setTitle(resourceBundle.getString("compare.title").replace("%s", playerOneData.getSteamUserInfo().getPlayers().getFirst().getPersonaname()).replace("%t", playerTwoData.getSteamUserInfo().getPlayers().getFirst().getPersonaname()))
+        EmbedBuilder embedBuilder = new EmbedBuilder()
+                .setTitle(resourceBundle.getString("compare.title").replace("%s", playerOneData.getSteamUserInfo().getPlayers().getFirst().getPersonaname()).replace("%t", playerTwoData.getSteamUserInfo().getPlayers().getFirst().getPersonaname()))
                 .setAuthor(resourceBundle.getString("stats.author"), "https://www.yoinc.ch")
-                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.kills"), getWinner(playerOneData, playerTwoData, "total_kills", true), true))
-                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.deaths"), getWinner(playerOneData, playerTwoData, "total_deaths", false), true))
-                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.wins"), getWinner(playerOneData, playerTwoData, "total_wins", true), true))
-                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.planted"), getWinner(playerOneData, playerTwoData, "total_planted_bombs", true), true))
-                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.defused"), getWinner(playerOneData, playerTwoData, "total_defused_bombs", true), true))
-                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.damage"), getWinner(playerOneData, playerTwoData, "total_damage_done", true), true));
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.kills"), getWinner(playerOneData, playerTwoData, "total_kills", true, wins), true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.deaths"), getWinner(playerOneData, playerTwoData, "total_deaths", false, wins), true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.wins"), getWinner(playerOneData, playerTwoData, "total_wins", true, wins), true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.planted"), getWinner(playerOneData, playerTwoData, "total_planted_bombs", true, wins), true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.defused"), getWinner(playerOneData, playerTwoData, "total_defused_bombs", true, wins), true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.damage"), getWinner(playerOneData, playerTwoData, "total_damage_done", true, wins), true));
 
-        if (winsOne > winsTwo) {
+        if (wins[0] > wins[1]) {
             embedBuilder.setImage(playerOneData.getSteamUserInfo().getPlayers().getFirst().getAvatarmedium());
-        } else if (winsTwo > winsOne) {
+        } else if (wins[1] > wins[0]) {
             embedBuilder.setImage(playerTwoData.getSteamUserInfo().getPlayers().getFirst().getAvatarmedium());
         }
         return embedBuilder;
     }
 
-    private String getWinner(ResponseData playerOneData, ResponseData playerTwoData, String statName, boolean higherRequired) {
+    private String getWinner(ResponseData playerOneData, ResponseData playerTwoData, String statName, boolean higherRequired, int[] wins) {
         long playerOneLong = playerOneData.getLongStatsForName(statName);
         long playerTwoLong = playerTwoData.getLongStatsForName(statName);
 
-        if (higherRequired) {
-            return getString(playerOneLong, playerTwoLong, playerOneLong > playerTwoLong, playerTwoLong > playerOneLong);
-        } else {
-            return getString(playerOneLong, playerTwoLong, playerOneLong < playerTwoLong, playerTwoLong < playerOneLong);
-        }
+        boolean playerOneWins = higherRequired ? playerOneLong > playerTwoLong : playerOneLong < playerTwoLong;
+        boolean playerTwoWins = higherRequired ? playerTwoLong > playerOneLong : playerTwoLong < playerOneLong;
+
+        return getString(playerOneLong, playerTwoLong, playerOneWins, playerTwoWins, wins);
     }
 
     @NotNull
-    private String getString(long playerOneLong, long playerTwoLong, boolean b, boolean b2) {
-        if (b) {
-            winsOne++;
+    private String getString(long playerOneLong, long playerTwoLong, boolean playerOneWins, boolean playerTwoWins, int[] wins) {
+        if (playerOneWins) {
+            wins[0]++;
             return "** :star: " + playerOneLong + " ** vs " + playerTwoLong;
-        } else if (b2) {
-            winsTwo++;
+        } else if (playerTwoWins) {
+            wins[1]++;
             return playerOneLong + " vs ** " + playerTwoLong + " ** :star: ";
         } else {
             return resourceBundle.getString("compare.equal").replace("%s", String.valueOf(playerOneLong));
