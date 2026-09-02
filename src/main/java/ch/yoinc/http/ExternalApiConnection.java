@@ -2,9 +2,8 @@ package ch.yoinc.http;
 
 import ch.yoinc.model.leetify.LeetifyMatchResponse;
 import ch.yoinc.model.leetify.LeetifyProfileResponse;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.TypeAdapter;
+import com.google.gson.*;
+import ch.yoinc.model.steam.ResponseData;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
@@ -21,15 +20,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Properties;
 
-public class LeetifyConnection {
+public class ExternalApiConnection {
 
     private final String apiKey;
     private final HttpClient client;
     private final Gson gson;
+    private final Properties properties;
     private final String LEETIFY_API = "https://api-public.cs-prod.leetify.com";
+    private final String STEAM_API = "https://api.steampowered.com";
 
-
-    public LeetifyConnection(Properties properties) {
+    public ExternalApiConnection(Properties properties) {
+        this.properties = properties;
         this.apiKey = properties.getProperty("leetify.apiToken");
         gson = new GsonBuilder()
                 .registerTypeAdapter(Instant.class, new TypeAdapter<Instant>() {
@@ -55,6 +56,29 @@ public class LeetifyConnection {
         this.client = HttpClient.newHttpClient();
     }
 
+    public ResponseData fetchSteamUserStats(String steamID) throws InterruptedException, IOException {
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        HttpRequest request;
+        ResponseData responseData;
+
+        request = HttpRequest.newBuilder()
+                .uri(URI.create(STEAM_API + "/ISteamUser/GetPlayerSummaries/v0002/?key=" + properties.get("steam.api") + "&steamids=" + steamID))
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        responseData = new Gson().fromJson(response.body(), ResponseData.class);
+
+        request = HttpRequest.newBuilder()
+                .uri(URI.create(STEAM_API + "/ISteamUserStats/GetUserStatsForGame/v0002/?key=" + properties.get("steam.api") + "&appid=730&steamid=" + steamID))
+                .build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        responseData.setPlayerstats(new Gson().fromJson(response.body(), ResponseData.class).getPlayerstats());
+
+        return responseData;
+    }
+
     public LeetifyProfileResponse getPlayerProfile(String steam64ID, String leetifyID) {
         String parameter = steam64ID == null ? "id=" + leetifyID : "steam64_id=" + steam64ID;
         HttpRequest request;
@@ -66,9 +90,14 @@ public class LeetifyConnection {
 
         try {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            return gson.fromJson(response.body(), LeetifyProfileResponse.class);
+            if (response.statusCode() == 200) {
+                return gson.fromJson(response.body(), LeetifyProfileResponse.class);
+            }
+            if (response.statusCode() != 404) {
+                System.out.println("[CSBot - ConnectionBuilder - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] getPlayerProfile for " + parameter + " returned status " + response.statusCode() + ", body: " + response.body());
+            }
         } catch (IOException | InterruptedException ex) {
-            System.out.println("[CSBot - LeetifyConnection - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] IOException / InterruptedException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - ConnectionBuilder - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] IOException / InterruptedException thrown: " + ex.getMessage());
         }
         return null;
     }
@@ -89,10 +118,10 @@ public class LeetifyConnection {
                 }.getType());
             }
             if(response.statusCode() != 404) {
-                System.out.println("[CSBot - LeetifyConnection - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] getPlayerMatchHistory for " + parameter + " returned status " + response.statusCode() + ", body: " + response.body());
+                System.out.println("[CSBot - ConnectionBuilder - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] getPlayerMatchHistory for " + parameter + " returned status " + response.statusCode() + ", body: " + response.body());
             }
         } catch (IOException | InterruptedException ex) {
-            System.out.println("[CSBot - LeetifyConnection - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] IOException / InterruptedException thrown: " + ex.getMessage());
+            System.out.println("[CSBot - ConnectionBuilder - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] IOException / InterruptedException thrown: " + ex.getMessage());
         }
         return null;
     }

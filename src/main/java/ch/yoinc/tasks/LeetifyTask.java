@@ -1,6 +1,6 @@
 package ch.yoinc.tasks;
 
-import ch.yoinc.http.LeetifyConnection;
+import ch.yoinc.http.ExternalApiConnection;
 import ch.yoinc.model.internal.InternalUser;
 import ch.yoinc.model.leetify.LeetifyMatchResponse;
 import ch.yoinc.model.leetify.LeetifyPlayerStatsResponse;
@@ -17,15 +17,20 @@ import java.util.Locale;
 public class LeetifyTask implements ScheduledTask {
 
     private DataService dataService;
-    private LeetifyConnection leetifyConnection;
+    private DiscordService discordService;
+
+    private ExternalApiConnection connection;
 
     @Override
     public void execute(JDA jda, Properties properties) {
         if (dataService == null) {
             dataService = new DataService(properties);
         }
-        if (leetifyConnection == null) {
-            leetifyConnection = new LeetifyConnection(properties);
+        if (discordService == null) {
+            discordService = new DiscordService();
+        }
+        if (connection == null) {
+            connection = new ExternalApiConnection(properties);
         }
         dataService.setBotID(jda.getSelfUser().getId());
 
@@ -70,9 +75,9 @@ public class LeetifyTask implements ScheduledTask {
                             "Kills: " + stats.total_kills +
                                     "\nDeaths: " + stats.total_deaths +
                                     "\nADR: " + stats.dpr +
-                                    "\nRating: " + formatRating(stats.leetify_rating) +
-                                    "\nCT Rating: " + formatRating(stats.ct_leetify_rating) +
-                                    "\nT Rating: " + formatRating(stats.t_leetify_rating),
+                                    "\nRating: " + discordService.formatRating(stats.leetify_rating) +
+                                    "\nCT Rating: " + discordService.formatRating(stats.ct_leetify_rating) +
+                                    "\nT Rating: " + discordService.formatRating(stats.t_leetify_rating),
                             true
                     );
                 }
@@ -93,17 +98,15 @@ public class LeetifyTask implements ScheduledTask {
                         .addField("Kills", Integer.toString(match.stats.getFirst().total_kills), true)
                         .addField("Deaths", Integer.toString(match.stats.getFirst().total_deaths), true)
                         .addField("ADR", Double.toString(match.stats.getFirst().dpr), true)
-                        .addField("Rating", formatRating(match.stats.getFirst().leetify_rating), true)
-                        .addField("CT Rating", formatRating(match.stats.getFirst().ct_leetify_rating), true)
-                        .addField("T Rating", formatRating(match.stats.getFirst().t_leetify_rating), true);
+                        .addField("Rating", discordService.formatRating(match.stats.getFirst().leetify_rating), true)
+                        .addField("CT Rating", discordService.formatRating(match.stats.getFirst().ct_leetify_rating), true)
+                        .addField("T Rating", discordService.formatRating(match.stats.getFirst().t_leetify_rating), true);
             }
             Objects.requireNonNull(jda.getTextChannelById(properties.getProperty("discord.channelID"))).sendMessageEmbeds(matchEmbed.build()).queue();
         }
     }
 
     private EmbedBuilder returnFilledEmbed(String title, Color color, String description, String map_name, String matchID, String footer) {
-        DiscordService discordService = new DiscordService();
-
         String DEFAULT_LEETIFY_URL = "https://leetify.com/app/match-details/%s/overview";
         String DEFAULT_MAP_LOGO_URL = "https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/main/images/%s.png";
         String DEFAULT_MAP_URL = "https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/main/images/thumbs/%s_1_png.png";
@@ -121,7 +124,7 @@ public class LeetifyTask implements ScheduledTask {
         HashMap<String, List<LeetifyMatchResponse>> results = new HashMap<>();
 
         for (InternalUser user : steamInternalUsers) {
-            List<LeetifyMatchResponse> matches = leetifyConnection.getPlayerMatchHistory(user.steamID, null);
+            List<LeetifyMatchResponse> matches = connection.getPlayerMatchHistory(user.steamID, null);
 
             if (matches != null && !matches.isEmpty()) {
                 List<String> newMatches = dataService.insertAndGetNewMatches(matches, user.userID);
@@ -148,12 +151,5 @@ public class LeetifyTask implements ScheduledTask {
     @Override
     public String getTaskName() {
         return "LeetifyTask";
-    }
-
-    private static String formatRating(Double rating) {
-        if (rating == null) {
-            return "n/a";
-        }
-        return String.format(Locale.US, "%.2f", rating * 100.0);
     }
 }

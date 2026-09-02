@@ -1,6 +1,6 @@
 package ch.yoinc.tasks;
 
-import ch.yoinc.http.LeetifyConnection;
+import ch.yoinc.http.ExternalApiConnection;
 import ch.yoinc.model.internal.InternalUser;
 import ch.yoinc.model.leetify.LeetifyMatchResponse;
 import ch.yoinc.model.leetify.LeetifyPlayerStatsResponse;
@@ -108,9 +108,9 @@ class LeetifyTaskTest {
     @Timeout(value = 5, unit = TimeUnit.SECONDS)
     void setNewlyPlayedMatches_returnsEmptyMap_whenUserHasNoMatchHistory() throws Exception {
         DataService dataService = mock(DataService.class);
-        LeetifyConnection leetifyConnection = mock(LeetifyConnection.class);
-        when(leetifyConnection.getPlayerMatchHistory(eq("STEAM1"), isNull())).thenReturn(null);
-        injectDependencies(dataService, leetifyConnection);
+        ExternalApiConnection connection = mock(ExternalApiConnection.class);
+        when(connection.getPlayerMatchHistory(eq("STEAM1"), isNull())).thenReturn(null);
+        injectDependencies(dataService, connection);
 
         // the method sleeps 10s (real) after every user; pre-interrupting this thread makes
         // that Thread.sleep() throw immediately instead of actually waiting
@@ -127,14 +127,14 @@ class LeetifyTaskTest {
     @Timeout(value = 5, unit = TimeUnit.SECONDS)
     void setNewlyPlayedMatches_onlyIncludesMatchesReturnedAsNew() throws Exception {
         DataService dataService = mock(DataService.class);
-        LeetifyConnection leetifyConnection = mock(LeetifyConnection.class);
+        ExternalApiConnection connection = mock(ExternalApiConnection.class);
 
         LeetifyMatchResponse oldMatch = match("old-match", "Alice");
         LeetifyMatchResponse newMatch = match("new-match", "Alice");
         List<LeetifyMatchResponse> history = List.of(oldMatch, newMatch);
-        when(leetifyConnection.getPlayerMatchHistory(eq("STEAM1"), isNull())).thenReturn(history);
+        when(connection.getPlayerMatchHistory(eq("STEAM1"), isNull())).thenReturn(history);
         when(dataService.insertAndGetNewMatches(history, 1)).thenReturn(List.of("new-match"));
-        injectDependencies(dataService, leetifyConnection);
+        injectDependencies(dataService, connection);
 
         Thread.currentThread().interrupt();
 
@@ -150,18 +150,18 @@ class LeetifyTaskTest {
     @Timeout(value = 12, unit = TimeUnit.SECONDS)
     void setNewlyPlayedMatches_groupsMatchesFromDifferentUsersUnderSameMatchId() throws Exception {
         DataService dataService = mock(DataService.class);
-        LeetifyConnection leetifyConnection = mock(LeetifyConnection.class);
+        ExternalApiConnection connection = mock(ExternalApiConnection.class);
 
         LeetifyMatchResponse aliceMatch = match("shared-match", "Alice");
         LeetifyMatchResponse bobMatch = match("shared-match", "Bob");
         List<LeetifyMatchResponse> aliceHistory = List.of(aliceMatch);
         List<LeetifyMatchResponse> bobHistory = List.of(bobMatch);
 
-        when(leetifyConnection.getPlayerMatchHistory(eq("STEAM1"), isNull())).thenReturn(aliceHistory);
-        when(leetifyConnection.getPlayerMatchHistory(eq("STEAM2"), isNull())).thenReturn(bobHistory);
+        when(connection.getPlayerMatchHistory(eq("STEAM1"), isNull())).thenReturn(aliceHistory);
+        when(connection.getPlayerMatchHistory(eq("STEAM2"), isNull())).thenReturn(bobHistory);
         when(dataService.insertAndGetNewMatches(aliceHistory, 1)).thenReturn(List.of("shared-match"));
         when(dataService.insertAndGetNewMatches(bobHistory, 2)).thenReturn(List.of("shared-match"));
-        injectDependencies(dataService, leetifyConnection);
+        injectDependencies(dataService, connection);
 
         // the production loop sleeps 10s (real) between users, so the first sleep has to be
         // waited out for the second user to be processed at all; once it's back we interrupt
@@ -217,9 +217,9 @@ class LeetifyTaskTest {
         }
     }
 
-    private void injectDependencies(DataService dataService, LeetifyConnection leetifyConnection) throws Exception {
+    private void injectDependencies(DataService dataService, ExternalApiConnection connection) throws Exception {
         setPrivateField("dataService", dataService);
-        setPrivateField("leetifyConnection", leetifyConnection);
+        setPrivateField("connectionBuilder", connection);
     }
 
     private void setPrivateField(String name, Object value) throws Exception {

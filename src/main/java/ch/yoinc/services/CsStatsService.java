@@ -2,7 +2,7 @@ package ch.yoinc.services;
 
 import com.google.gson.JsonSyntaxException;
 import ch.yoinc.http.CarthageException;
-import ch.yoinc.http.ConnectionBuilder;
+import ch.yoinc.http.ExternalApiConnection;
 import ch.yoinc.model.steam.ResponseData;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -17,13 +17,14 @@ import java.util.*;
 
 public class CsStatsService {
     ResourceBundle resourceBundle;
-
-    ConnectionBuilder connectionBuilder;
+    ExternalApiConnection connection;
     DataService dataService;
+    DiscordService discordService;
 
     public CsStatsService(Properties properties, DataService dataService) {
         this.dataService = dataService;
-        connectionBuilder = new ConnectionBuilder(properties);
+        connection = new ExternalApiConnection(properties);
+        discordService = new DiscordService();
     }
 
     public EmbedBuilder handleStatsEvent(SlashCommandInteractionEvent event) {
@@ -111,7 +112,7 @@ public class CsStatsService {
         String steamID = dataService.getSteamIDForDiscordID(discordID);
 
         if (StringUtils.isNotEmpty(steamID)) {
-            responseData = connectionBuilder.fetchSteamUserStats(steamID);
+            responseData = connection.fetchSteamUserStats(steamID);
         }
         return responseData;
     }
