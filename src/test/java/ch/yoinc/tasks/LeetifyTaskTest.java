@@ -5,6 +5,7 @@ import ch.yoinc.model.internal.InternalUser;
 import ch.yoinc.model.leetify.LeetifyMatchResponse;
 import ch.yoinc.model.leetify.LeetifyPlayerStatsResponse;
 import ch.yoinc.services.DataService;
+import ch.yoinc.services.DiscordService;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,8 +38,9 @@ class LeetifyTaskTest {
     private LeetifyTask task;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         task = new LeetifyTask();
+        setPrivateField("discordService", new DiscordService());
     }
 
     // ---------------------------------------------------------------------
@@ -200,10 +202,8 @@ class LeetifyTaskTest {
         return builder.build();
     }
 
-    private String invokeFormatRating(Double rating) throws Exception {
-        Method method = LeetifyTask.class.getDeclaredMethod("formatRating", Double.class);
-        method.setAccessible(true);
-        return (String) method.invoke(null, rating);
+    private String invokeFormatRating(Double rating) {
+        return new DiscordService().formatRating(rating);
     }
 
     @SuppressWarnings("unchecked")
@@ -219,7 +219,7 @@ class LeetifyTaskTest {
 
     private void injectDependencies(DataService dataService, ExternalApiConnection connection) throws Exception {
         setPrivateField("dataService", dataService);
-        setPrivateField("connectionBuilder", connection);
+        setPrivateField("connection", connection);
     }
 
     private void setPrivateField(String name, Object value) throws Exception {
