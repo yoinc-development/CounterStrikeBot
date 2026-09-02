@@ -1,6 +1,5 @@
 package ch.yoinc.services;
 
-import com.google.gson.JsonSyntaxException;
 import ch.yoinc.http.CarthageException;
 import ch.yoinc.http.ExternalApiConnection;
 import ch.yoinc.model.steam.ResponseData;
@@ -9,13 +8,16 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import org.codehaus.plexus.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class CsStatsService {
+
+    private static final Logger log = LoggerFactory.getLogger(CsStatsService.class);
+
     ResourceBundle resourceBundle;
     ExternalApiConnection connection;
     DataService dataService;
@@ -33,14 +35,14 @@ public class CsStatsService {
         try {
             ResponseData responseData = getUserResponseData(Objects.requireNonNull(event.getOption("player")).getAsMentionable().getId());
             return responseData.getBasicInfo(resourceBundle);
-        } catch (InterruptedException | IOException ex) {
-            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] InterruptedException / IOException thrown: " + ex.getMessage());
-            return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedexception"));
-        } catch (NullPointerException | JsonSyntaxException ex) {
-            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] NullPointerException / JSonSyntaxException thrown: " + ex.getMessage());
+        } catch (IOException | InterruptedException ex) {
+            log.error(ex.getMessage(), ex);
+            return new EmbedBuilder().setTitle(resourceBundle.getString("error.connectionerror"));
+        } catch (NullPointerException ex) {
+            log.error(ex.getMessage(), ex);
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.privacysettings"));
         } catch (CarthageException ex) {
-            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] CarthageException thrown: " + ex.getMessage());
+            log.error(ex.getMessage(), ex);
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror"));
         }
     }
@@ -48,17 +50,18 @@ public class CsStatsService {
     public EmbedBuilder handleCompareEvent(SlashCommandInteractionEvent event) {
         resourceBundle = ResourceBundle.getBundle("localization", Locale.of("en"));
         try {
-            String requestedUserOneID = Objects.requireNonNull(event.getOption("playerone")).getAsMentionable().getId();
-            String requestedUserTwoID = Objects.requireNonNull(event.getOption("playertwo")).getAsMentionable().getId();
-            return comparePlayers(getUserResponseData(requestedUserOneID), getUserResponseData(requestedUserTwoID));
-        } catch (NullPointerException ex) {
-            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] NullPointerException thrown: " + ex.getMessage());
-            return new EmbedBuilder().setTitle(resourceBundle.getString("error.wrongqueryparameters"));
+            ResponseData userDataOne = getUserResponseData(Objects.requireNonNull(event.getOption("playerone")).getAsMentionable().getId());
+            ResponseData userDataTwo = getUserResponseData(Objects.requireNonNull(event.getOption("playertwo")).getAsMentionable().getId());
+
+            if(userDataOne == null || userDataTwo == null) {
+                return new EmbedBuilder().setTitle(resourceBundle.getString("error.privacysettings"));
+            }
+            return comparePlayers(userDataOne, userDataTwo);
         } catch (InterruptedException | IOException ex) {
-            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] InterruptedException / IOException thrown: " + ex.getMessage());
-            return new EmbedBuilder().setTitle(resourceBundle.getString("error.interruptedexception"));
+            log.error(ex.getMessage(), ex);
+            return new EmbedBuilder().setTitle(resourceBundle.getString("error.connectionerror"));
         } catch (CarthageException ex) {
-            System.out.println("[CSBot - CsStatsService - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] CarthageException thrown: " + ex.getMessage());
+            log.error(ex.getMessage(), ex);
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror"));
         }
     }
@@ -107,7 +110,7 @@ public class CsStatsService {
         }
     }
 
-    private ResponseData getUserResponseData(String discordID) throws NullPointerException, InterruptedException, IOException, CarthageException {
+    private ResponseData getUserResponseData(String discordID) throws IOException, InterruptedException, CarthageException {
         ResponseData responseData = null;
         String steamID = dataService.getSteamIDForDiscordID(discordID);
 

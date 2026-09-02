@@ -7,22 +7,21 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
 public class StartUp {
 
+    private static final Logger log = LoggerFactory.getLogger(StartUp.class);
+
     public static void main(String[] args) {
         try {
-
-            System.out.println("[CSBot - StartUp - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] - Application Started");
-
             InputStream inputStream = StartUp.class.getClassLoader().getResourceAsStream("config.properties");
             Properties properties = new Properties();
             properties.load(inputStream);
@@ -44,10 +43,8 @@ public class StartUp {
                     .queue();
 
             jda.awaitReady();
-        } catch (InterruptedException ex) {
-            System.out.println("[CSBot - StartUp - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] InterruptedException thrown: " + ex.getMessage());
-        } catch (IOException ex) {
-            System.out.println("[CSBot - StartUp - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] IOException thrown: " + ex.getMessage());
+        } catch (InterruptedException | IOException ex) {
+            log.error(ex.getMessage(), ex);
         }
     }
 }
