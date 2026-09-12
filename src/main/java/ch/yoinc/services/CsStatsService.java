@@ -3,6 +3,7 @@ package ch.yoinc.services;
 import ch.yoinc.http.CarthageException;
 import ch.yoinc.http.ExternalApiConnection;
 import ch.yoinc.model.leetify.LeetifyProfileResponse;
+import ch.yoinc.model.leetify.LeetifyRankResponse;
 import ch.yoinc.model.leetify.LeetifyRatingResponse;
 import ch.yoinc.model.steam.ResponseData;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -79,29 +80,34 @@ public class CsStatsService {
     public EmbedBuilder handleLeetifyUserContext(UserContextInteractionEvent event) {
         resourceBundle = ResourceBundle.getBundle("localization", Locale.of("en"));
         try {
-            String steamID = dataService.getSteamIDForDiscordID(Objects.requireNonNull(event.getMember()).getId());
+            String steamID = dataService.getSteamIDForDiscordID(Objects.requireNonNull(event.getTargetMember()).getId());
+            if (!StringUtils.isNotEmpty(steamID)) {
+                return new EmbedBuilder().setTitle(resourceBundle.getString("error.noleetifyprofile"));
+            }
+
             LeetifyProfileResponse profileResponse = connection.getPlayerProfile(steamID, null);
             if(profileResponse != null) {
                 EmbedBuilder returnEmbed = discordService.createEmbedBuilder(profileResponse.name + "'s Leetify Stats", null, null,
                         "First match played at " + profileResponse.first_match_date);
 
+                LeetifyRankResponse ranks = profileResponse.ranks;
                 returnEmbed
                         .setThumbnail("https://cdn.brandfetch.io/idYPcZQLsh/w/820/h/820/theme/dark/logo.png?c=1dxbfHSJFAPEGdCLU4o5B")
-                        .addField("Faceit", profileResponse.ranks.faceit == null ? "n/a" + "(" + profileResponse.ranks.faceit_elo + ")" : profileResponse.ranks.faceit + "(" + profileResponse.ranks.faceit_elo + ")", true)
-                        .addField("Premier", Integer.toString(profileResponse.ranks.premier), true)
-                        .addField("Wingman", getWingmanRankName(profileResponse.ranks.wingman), true)
-                        .addField("Leetify Rating", String.format("%.2f", profileResponse.ranks.leetify), true)
+                        .addField("Faceit", formatFaceitRank(ranks), true)
+                        .addField("Premier", ranks == null ? "n/a" : formatNullable(ranks.premier), true)
+                        .addField("Wingman", ranks == null ? "n/a" : getWingmanRankName(ranks.wingman), true)
+                        .addField("Leetify Rating", ranks == null ? "n/a" : formatNullable(ranks.leetify), true)
                         .addField("Win Rate", discordService.formatRating(profileResponse.winrate), true)
-                        .addField("Played matches", Integer.toString(profileResponse.total_matches), true);
+                        .addField("Played matches", formatNullable(profileResponse.total_matches), true);
 
                 LeetifyRatingResponse rating = profileResponse.rating;
                 if (rating != null) {
                     returnEmbed
                             .addField("CT Rating", discordService.formatRating(rating.ct_leetify), true)
                             .addField("T Rating", discordService.formatRating(rating.t_leetify), true)
-                            .addField("Aim", Double.toString(rating.aim), true)
-                            .addField("Positioning", Double.toString(rating.positioning), true)
-                            .addField("Utility", Double.toString(rating.utility), true)
+                            .addField("Aim", formatNullable(rating.aim), true)
+                            .addField("Positioning", formatNullable(rating.positioning), true)
+                            .addField("Utility", formatNullable(rating.utility), true)
                             .addField("Clutch", discordService.formatRating(rating.clutch), true)
                             .addField("Opening", discordService.formatRating(rating.opening), true);
                 }
@@ -111,6 +117,9 @@ public class CsStatsService {
         } catch (InterruptedException | IOException ex) {
             log.error(ex.getMessage(), ex);
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.connectionerror"));
+        } catch (NullPointerException ex) {
+            log.error(ex.getMessage(), ex);
+            return new EmbedBuilder().setTitle(resourceBundle.getString("error.privacysettings"));
         } catch (CarthageException ex) {
             log.error(ex.getMessage(), ex);
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror"));
@@ -125,47 +134,75 @@ public class CsStatsService {
         return WINGMAN_RANK_NAMES[wingmanRank - 1];
     }
 
+    private String formatFaceitRank(LeetifyRankResponse ranks) {
+        if (ranks == null || ranks.faceit == null) {
+            return "n/a";
+        }
+        return ranks.faceit + " (" + formatNullable(ranks.faceit_elo) + ")";
+    }
+
+    private String formatNullable(Integer value) {
+        return value == null ? "n/a" : value.toString();
+    }
+
+    private String formatNullable(Double value) {
+        return value == null ? "n/a" : String.format("%.2f", value);
+    }
+
+    private record ComparisonResult(String display, int winner) {
+        private static final int TIE = 0;
+        private static final int PLAYER_ONE = 1;
+        private static final int PLAYER_TWO = 2;
+    }
+
     private EmbedBuilder comparePlayers(ResponseData playerOneData, ResponseData playerTwoData) {
-        int[] wins = new int[2]; // wins[0] = playerOne, wins[1] = playerTwo
+        ComparisonResult kills = getWinner(playerOneData, playerTwoData, "total_kills", true);
+        ComparisonResult deaths = getWinner(playerOneData, playerTwoData, "total_deaths", false);
+        ComparisonResult wins = getWinner(playerOneData, playerTwoData, "total_wins", true);
+        ComparisonResult planted = getWinner(playerOneData, playerTwoData, "total_planted_bombs", true);
+        ComparisonResult defused = getWinner(playerOneData, playerTwoData, "total_defused_bombs", true);
+        ComparisonResult damage = getWinner(playerOneData, playerTwoData, "total_damage_done", true);
+
+        List<ComparisonResult> results = List.of(kills, deaths, wins, planted, defused, damage);
+        long winsOne = results.stream().filter(result -> result.winner() == ComparisonResult.PLAYER_ONE).count();
+        long winsTwo = results.stream().filter(result -> result.winner() == ComparisonResult.PLAYER_TWO).count();
 
         EmbedBuilder embedBuilder = new EmbedBuilder()
                 .setTitle(resourceBundle.getString("compare.title").replace("%s", playerOneData.getSteamUserInfo().getPlayers().getFirst().getPersonaname()).replace("%t", playerTwoData.getSteamUserInfo().getPlayers().getFirst().getPersonaname()))
                 .setAuthor(resourceBundle.getString("stats.author"), "https://www.yoinc.ch")
-                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.kills"), getWinner(playerOneData, playerTwoData, "total_kills", true, wins), true))
-                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.deaths"), getWinner(playerOneData, playerTwoData, "total_deaths", false, wins), true))
-                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.wins"), getWinner(playerOneData, playerTwoData, "total_wins", true, wins), true))
-                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.planted"), getWinner(playerOneData, playerTwoData, "total_planted_bombs", true, wins), true))
-                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.defused"), getWinner(playerOneData, playerTwoData, "total_defused_bombs", true, wins), true))
-                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.damage"), getWinner(playerOneData, playerTwoData, "total_damage_done", true, wins), true));
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.kills"), kills.display(), true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.deaths"), deaths.display(), true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.wins"), wins.display(), true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.planted"), planted.display(), true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.defused"), defused.display(), true))
+                .addField(new MessageEmbed.Field(resourceBundle.getString("stats.damage"), damage.display(), true));
 
-        if (wins[0] > wins[1]) {
+        if (winsOne > winsTwo) {
             embedBuilder.setImage(playerOneData.getSteamUserInfo().getPlayers().getFirst().getAvatarmedium());
-        } else if (wins[1] > wins[0]) {
+        } else if (winsTwo > winsOne) {
             embedBuilder.setImage(playerTwoData.getSteamUserInfo().getPlayers().getFirst().getAvatarmedium());
         }
         return embedBuilder;
     }
 
-    private String getWinner(ResponseData playerOneData, ResponseData playerTwoData, String statName, boolean higherRequired, int[] wins) {
+    private ComparisonResult getWinner(ResponseData playerOneData, ResponseData playerTwoData, String statName, boolean higherRequired) {
         long playerOneLong = playerOneData.getLongStatsForName(statName);
         long playerTwoLong = playerTwoData.getLongStatsForName(statName);
 
         boolean playerOneWins = higherRequired ? playerOneLong > playerTwoLong : playerOneLong < playerTwoLong;
         boolean playerTwoWins = higherRequired ? playerTwoLong > playerOneLong : playerTwoLong < playerOneLong;
 
-        return getString(playerOneLong, playerTwoLong, playerOneWins, playerTwoWins, wins);
+        return getString(playerOneLong, playerTwoLong, playerOneWins, playerTwoWins);
     }
 
     @NotNull
-    private String getString(long playerOneLong, long playerTwoLong, boolean playerOneWins, boolean playerTwoWins, int[] wins) {
+    private ComparisonResult getString(long playerOneLong, long playerTwoLong, boolean playerOneWins, boolean playerTwoWins) {
         if (playerOneWins) {
-            wins[0]++;
-            return "** :star: " + playerOneLong + " ** vs " + playerTwoLong;
+            return new ComparisonResult("** :star: " + playerOneLong + " ** vs " + playerTwoLong, ComparisonResult.PLAYER_ONE);
         } else if (playerTwoWins) {
-            wins[1]++;
-            return playerOneLong + " vs ** " + playerTwoLong + " ** :star: ";
+            return new ComparisonResult(playerOneLong + " vs ** " + playerTwoLong + " ** :star: ", ComparisonResult.PLAYER_TWO);
         } else {
-            return resourceBundle.getString("compare.equal").replace("%s", String.valueOf(playerOneLong));
+            return new ComparisonResult(resourceBundle.getString("compare.equal").replace("%s", String.valueOf(playerOneLong)), ComparisonResult.TIE);
         }
     }
 
