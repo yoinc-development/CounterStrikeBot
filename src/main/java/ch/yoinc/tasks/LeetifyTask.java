@@ -57,7 +57,7 @@ public class LeetifyTask implements ScheduledTask {
                     case "matchmaking_wingman" -> returnFilledEmbed("New Wingman Match",
                             Color.GREEN, players + " played a Wingman match together and " + ((hasWon) ? "**won**." :  "**lost**."),
                             match.map_name, matchID, "Finished at " + match.finished_at);
-                    case "matchmaking" -> returnFilledEmbed("New Competitive Match",
+                    case "matchmaking", "matchmaking_competitive" -> returnFilledEmbed("New Competitive Match",
                             Color.YELLOW, players + " played a Competitive match together and " + ((hasWon) ? "**won**." :  "**lost**."),
                             match.map_name, matchID, "Finished at " + match.finished_at);
                     default -> matchEmbed;
@@ -84,7 +84,7 @@ public class LeetifyTask implements ScheduledTask {
                     case "matchmaking_wingman" -> returnFilledEmbed("New Wingman Match", Color.GREEN,
                             match.stats.getFirst().name + " played a Wingman match and " + ((hasWon) ? "**won**." :  "**lost**."),
                             match.map_name, matchID, "Finished at " + match.finished_at);
-                    case "matchmaking" -> returnFilledEmbed("New Competitive Match", Color.YELLOW,
+                    case "matchmaking", "matchmaking_competitive" -> returnFilledEmbed("New Competitive Match", Color.YELLOW,
                             match.stats.getFirst().name + " played a Competitive match and " + ((hasWon) ? "**won**." :  "**lost**."),
                             match.map_name, matchID, "Finished at " + match.finished_at);
                     default -> matchEmbed;
