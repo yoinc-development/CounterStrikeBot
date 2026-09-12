@@ -2,10 +2,13 @@ package ch.yoinc.services;
 
 import ch.yoinc.http.CarthageException;
 import ch.yoinc.http.ExternalApiConnection;
+import ch.yoinc.model.leetify.LeetifyProfileResponse;
+import ch.yoinc.model.leetify.LeetifyRatingResponse;
 import ch.yoinc.model.steam.ResponseData;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
 import org.codehaus.plexus.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -17,6 +20,13 @@ import java.util.*;
 public class CsStatsService {
 
     private static final Logger log = LoggerFactory.getLogger(CsStatsService.class);
+
+    private static final String[] WINGMAN_RANK_NAMES = {
+            "Silver I", "Silver II", "Silver III", "Silver IV", "Silver Elite", "Silver Elite Master",
+            "Gold Nova I", "Gold Nova II", "Gold Nova III", "Gold Nova Master",
+            "Master Guardian I", "Master Guardian II", "Master Guardian Elite", "Distinguished Master Guardian",
+            "Legendary Eagle", "Legendary Eagle Master", "Supreme Master First Class", "Global Elite"
+    };
 
     ResourceBundle resourceBundle;
     ExternalApiConnection connection;
@@ -64,6 +74,55 @@ public class CsStatsService {
             log.error(ex.getMessage(), ex);
             return new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror"));
         }
+    }
+
+    public EmbedBuilder handleLeetifyUserContext(UserContextInteractionEvent event) {
+        resourceBundle = ResourceBundle.getBundle("localization", Locale.of("en"));
+        try {
+            String steamID = dataService.getSteamIDForDiscordID(Objects.requireNonNull(event.getMember()).getId());
+            LeetifyProfileResponse profileResponse = connection.getPlayerProfile(steamID, null);
+            if(profileResponse != null) {
+                EmbedBuilder returnEmbed = discordService.createEmbedBuilder(profileResponse.name + "'s Leetify Stats", null, null,
+                        "First match played at " + profileResponse.first_match_date);
+
+                returnEmbed
+                        .setThumbnail("https://cdn.brandfetch.io/idYPcZQLsh/w/820/h/820/theme/dark/logo.png?c=1dxbfHSJFAPEGdCLU4o5B")
+                        .addField("Faceit", profileResponse.ranks.faceit == null ? "n/a" + "(" + profileResponse.ranks.faceit_elo + ")" : profileResponse.ranks.faceit + "(" + profileResponse.ranks.faceit_elo + ")", true)
+                        .addField("Premier", Integer.toString(profileResponse.ranks.premier), true)
+                        .addField("Wingman", getWingmanRankName(profileResponse.ranks.wingman), true)
+                        .addField("Leetify Rating", String.format("%.2f", profileResponse.ranks.leetify), true)
+                        .addField("Win Rate", discordService.formatRating(profileResponse.winrate), true)
+                        .addField("Played matches", Integer.toString(profileResponse.total_matches), true);
+
+                LeetifyRatingResponse rating = profileResponse.rating;
+                if (rating != null) {
+                    returnEmbed
+                            .addField("CT Rating", discordService.formatRating(rating.ct_leetify), true)
+                            .addField("T Rating", discordService.formatRating(rating.t_leetify), true)
+                            .addField("Aim", Double.toString(rating.aim), true)
+                            .addField("Positioning", Double.toString(rating.positioning), true)
+                            .addField("Utility", Double.toString(rating.utility), true)
+                            .addField("Clutch", discordService.formatRating(rating.clutch), true)
+                            .addField("Opening", discordService.formatRating(rating.opening), true);
+                }
+
+                return returnEmbed;
+            }
+        } catch (InterruptedException | IOException ex) {
+            log.error(ex.getMessage(), ex);
+            return new EmbedBuilder().setTitle(resourceBundle.getString("error.connectionerror"));
+        } catch (CarthageException ex) {
+            log.error(ex.getMessage(), ex);
+            return new EmbedBuilder().setTitle(resourceBundle.getString("error.majorerror"));
+        }
+        return new EmbedBuilder().setTitle(resourceBundle.getString("error.noleetifyprofile"));
+    }
+
+    private String getWingmanRankName(Integer wingmanRank) {
+        if (wingmanRank == null || wingmanRank < 1 || wingmanRank > WINGMAN_RANK_NAMES.length) {
+            return "n/a";
+        }
+        return WINGMAN_RANK_NAMES[wingmanRank - 1];
     }
 
     private EmbedBuilder comparePlayers(ResponseData playerOneData, ResponseData playerTwoData) {

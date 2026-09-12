@@ -2,6 +2,7 @@ import ch.yoinc.listeners.CounterStrikeBotListener;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -39,7 +40,8 @@ public class StartUp {
             jda.updateCommands().addCommands(
                             Commands.slash("stats", resourceBundle.getString("command.stats.description")).addOption(OptionType.MENTIONABLE, "player", resourceBundle.getString("command.stats.value.description"), true),
                             Commands.slash("compare", resourceBundle.getString("command.compare.description")).addOption(OptionType.MENTIONABLE, "playerone", resourceBundle.getString("command.compare.valueone.description"), true).addOption(OptionType.MENTIONABLE, "playertwo", resourceBundle.getString("command.compare.valuetwo.description"), true),
-                            Commands.slash("teams", resourceBundle.getString("command.teams.description")).addOption(OptionType.NUMBER, "amountofteams", resourceBundle.getString("command.teams.value.description"), false))
+                            Commands.slash("teams", resourceBundle.getString("command.teams.description")).addOption(OptionType.NUMBER, "amountofteams", resourceBundle.getString("command.teams.value.description"), false),
+                            Commands.context(Command.Type.USER, "Leetify"))
                     .queue();
 
             jda.awaitReady();

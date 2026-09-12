@@ -18,14 +18,12 @@ public class CounterStrikeBotListener extends ListenerAdapter {
     private final CsFunService csFunService;
     private final CsStatsService csStatsService;
     private final DataService dataService;
-    private final DiscordService discordService;
     private final TaskScheduler taskScheduler;
 
     public CounterStrikeBotListener(Properties properties) {
         dataService = new DataService(properties);
         csStatsService = new CsStatsService(properties, dataService);
         csFunService = new CsFunService(new MessageService(properties));
-        discordService = new DiscordService();
         taskScheduler = new TaskScheduler(properties);
     }
 
@@ -54,7 +52,10 @@ public class CounterStrikeBotListener extends ListenerAdapter {
 
     @Override
     public void onUserContextInteraction(@NotNull UserContextInteractionEvent event) {
-
+        if ("leetify".equalsIgnoreCase(event.getName())) {
+            event.deferReply().queue();
+            event.getHook().sendMessageEmbeds(csStatsService.handleLeetifyUserContext(event).build()).queue();
+        }
     }
 
     @Override
