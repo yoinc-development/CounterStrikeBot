@@ -2,8 +2,6 @@ package ch.yoinc.tasks;
 
 import net.dv8tion.jda.api.JDA;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -35,7 +33,7 @@ public class TaskScheduler {
     /**
      * Start all registered ch.yoinc.tasks.
      *
-     * @param jda        The JDA instance
+     * @param jda The JDA instance
      */
     public void startAllTasks(JDA jda) {
         this.jda = jda;
@@ -59,11 +57,7 @@ public class TaskScheduler {
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
-                try {
-                    task.execute(jda, properties);
-                } catch (Exception ex) {
-                    System.out.println("[CSBot - TaskScheduler - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")) + "] Exception thrown: " + ex.getMessage());
-                }
+                task.execute(jda, properties);
             }
         };
 

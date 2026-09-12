@@ -101,7 +101,7 @@ public class CarthageConnection {
         if (responseBody.has(field) && !responseBody.get(field).isJsonNull()) {
             return responseBody.get(field).getAsString();
         }
-        return null;
+        return "";
     }
 
     private <T> List<T> extractList(JsonObject responseBody, String field, Type type) {
