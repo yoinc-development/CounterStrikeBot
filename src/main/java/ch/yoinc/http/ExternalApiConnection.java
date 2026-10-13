@@ -119,9 +119,6 @@ public class ExternalApiConnection {
             return gson.fromJson(response.body(), new TypeToken<List<LeetifyMatchResponse>>() {
             }.getType());
         }
-        if (response.statusCode() != 404) {
-            log.warn("getPlayerMatchHistory for {} returned status {}, body: {}", parameter, response.statusCode(), response.body());
-        }
         return null;
     }
 }
